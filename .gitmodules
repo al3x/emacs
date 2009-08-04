@@ -1,3 +1,6 @@
 [submodule "vendor/twilight-emacs"]
 	path = vendor/twilight-emacs
 	url = git://github.com/crafterm/twilight-emacs.git
+[submodule "vendor/almost-monokai"]
+	path = vendor/almost-monokai
+	url = git://github.com/lut4rp/almost-monokai.git

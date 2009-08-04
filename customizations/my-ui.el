@@ -1,6 +1,9 @@
 ; font
 (set-default-font "-apple-DejaVu_Sans_Mono-medium-normal-normal-*-14-*-*-*-m-0-iso10646-")
 
+; window size
+(set-frame-size-according-to-resolution)
+
 ; don't display startup message
 (setq inhibit-startup-message t)
 
@@ -10,6 +13,9 @@
 
 ; blink cursor
 (blink-cursor-mode)
+
+; highlight current line
+(global-hl-line-mode t)
 
 ; force new frames into existing window
 (setq ns-pop-up-frames nil)
@@ -24,6 +30,7 @@
 (require 'color-theme)
 (setq color-theme-is-global t)
 (load-file "~/.emacs.d/vendor/twilight-emacs/color-theme-twilight.el")
-(color-theme-twilight)
+(load-file "~/.emacs.d/vendor/almost-monokai/color-theme-almost-monokai.el")
 
-(provide 'my-ui)
+; (color-theme-twilight)
+(color-theme-almost-monokai)

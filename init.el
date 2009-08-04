@@ -22,5 +22,3 @@
 
 ; run as server
 (server-start)
-
-(provide 'init)

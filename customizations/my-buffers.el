@@ -20,6 +20,12 @@
 (setq desktop-save 'if-exists)
 (desktop-save-mode 1)
 
+; disable auto-save files (#foo#)
+(setq auto-save-default nil)
+
+; disable backup files (foo~)
+(setq backup-inhibited t)
+
 ; save place
 (require 'saveplace)
 
@@ -34,5 +40,3 @@
 (require 'ido)
 (ido-mode t)
 (setq ido-enable-flex-matching t)
-
-(provide 'my-buffers)

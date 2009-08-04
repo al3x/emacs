@@ -8,5 +8,3 @@
 
 ; To be able to M-x without meta
 (global-set-key (kbd "C-x C-m") 'execute-extended-command)
-
-(provide 'my-keys)

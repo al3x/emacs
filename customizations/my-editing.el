@@ -18,23 +18,25 @@
 (setq show-trailing-whitespace t)
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
-; line and column display
+; line numbering
+(require 'linum)
 (global-linum-mode t)
+(setq linum-format "%d ") ; space after line number
+
+; show column number in bar
 (column-number-mode t)
 
 ; highlight URLs in comments/strings
 (add-hook 'find-file-hooks 'goto-address-prog-mode)
 
-; disable auto-save files (#foo#)
-(setq auto-save-default nil)
+; selection
+(delete-selection-mode t)
 
-; disable backup files (foo~)
-(setq backup-inhibited t)
+; show marks as selections
+(setq transient-mark-mode t)
 
 ; show parens
 (show-paren-mode t)
 
 ; font lock
 (global-font-lock-mode t)
-
-(provide 'my-editing)
