@@ -14,8 +14,8 @@
 (set-selection-coding-system 'utf-8)
 
 ; whitespace
-(whitespace-mode t)
-(setq show-trailing-whitespace t)
+;(global-whitespace-mode t)
+;(setq show-trailing-whitespace t)
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ; line numbering
@@ -35,8 +35,14 @@
 ; show marks as selections
 (setq transient-mark-mode t)
 
-; show parens
+; highlight matching parens
 (show-paren-mode t)
 
-; font lock
+; highlight incremental search
+(defconst search-highlight t)
+
+; no newlines past EOF
+(setq next-line-add-newlines nil)
+
+; apply syntax highlighting to all buffers
 (global-font-lock-mode t)

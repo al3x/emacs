@@ -15,6 +15,8 @@
 
 ; load vendor libraries
 (vendor 'color-theme)
+(vendor 'textmate)
+(vendor 'nav)
 
 ; load all customizations
 (mapcar 'load-directory

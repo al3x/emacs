@@ -12,7 +12,7 @@
 (tool-bar-mode -1)
 
 ; blink cursor
-(blink-cursor-mode)
+(blink-cursor-mode t)
 
 ; highlight current line
 (global-hl-line-mode t)
