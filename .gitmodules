@@ -7,3 +7,9 @@
 [submodule "vendor/textmate"]
 	path = vendor/textmate
 	url = git://github.com/defunkt/textmate.el.git
+[submodule "vendor/rails-reloaded"]
+	path = vendor/rails-reloaded
+	url = git://github.com/dima-exe/emacs-rails-reloaded.git
+[submodule "vendor/rinari"]
+	path = vendor/rinari
+	url = git://github.com/eschulte/rinari.git

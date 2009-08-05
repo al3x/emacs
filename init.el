@@ -17,6 +17,15 @@
 (vendor 'color-theme)
 (vendor 'textmate)
 (vendor 'nav)
+(vendor 'centered-cursor-mode)
+(vendor 'browse-kill-ring)
+(vendor 'yaml-mode)
+(vendor 'rinari)
+(vendor 'ack)
+
+; load libraries that vendor can't handle
+(add-to-list 'load-path "~/.emacs.d/vendor/scala")
+(add-to-list 'load-path "~/.emacs.d/vendor/js2")
 
 ; load all customizations
 (mapcar 'load-directory

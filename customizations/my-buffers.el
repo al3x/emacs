@@ -36,7 +36,11 @@
 (setq uniquify-after-kill-buffer-p t)
 (setq uniquify-ignore-buffers-re "^\\*")
 
-; ido
+; Interactively Do Things
 (require 'ido)
 (ido-mode t)
-(setq ido-enable-flex-matching t)
+(setq ido-enable-flex-matching t) ; case insensitive matching
+
+; kill ring browsing
+(require 'browse-kill-ring+)
+(browse-kill-ring-default-keybindings)

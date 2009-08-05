@@ -4,7 +4,7 @@
 
 ; mousing
 (setq mac-emulate-three-button-mouse nil)
-(pc-selection-mode)
+(pc-selection-mode t)
 
 ; encoding
 (prefer-coding-system 'utf-8)
@@ -46,3 +46,7 @@
 
 ; apply syntax highlighting to all buffers
 (global-font-lock-mode t)
+
+; smooth scrolling
+(require 'centered-cursor-mode)
+(global-centered-cursor-mode t)
