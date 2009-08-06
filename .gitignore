@@ -1,2 +1,7 @@
 .DS_Store
 *~
+.emacs-opened-files
+.savehist
+.saveplace
+tramp
+vendor/nav/.hg/

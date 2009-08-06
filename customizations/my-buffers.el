@@ -22,14 +22,14 @@
 (setq backup-inhibited t)
 
 ; save opened files across sessions
-(require 'save-visited-files)
-(open-visited-files)
-(save-visited-files-mode 1)
+;(require 'save-visited-files)
+;(open-visited-files)
+;(save-visited-files-mode 1)
 
 ; save cursor position within files
-(save-place-file "~/.emacs.d/.saveplace")
-(setq-default save-place t)
 (require 'saveplace)
+(setq save-place-file "~/.emacs.d/.saveplace")
+(setq-default save-place t)
 
 ; save minibuffer history across sessions
 (setq savehist-file "~/.emacs.d/.savehist")
