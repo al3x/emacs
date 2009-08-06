@@ -22,6 +22,8 @@
 (vendor 'yaml-mode)
 (vendor 'rinari)
 (vendor 'ack)
+(vendor 'textile-minor-mode)
+(vendor 'magit)
 
 ; load libraries that vendor can't handle
 (add-to-list 'load-path "~/.emacs.d/vendor/scala")

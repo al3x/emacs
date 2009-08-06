@@ -44,3 +44,6 @@
 ; kill ring browsing
 (require 'browse-kill-ring+)
 (browse-kill-ring-default-keybindings)
+
+; automatically clean up old buffers
+(require 'midnight)

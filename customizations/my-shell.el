@@ -28,5 +28,7 @@
    (local-set-key "\C-u" 'eshell-kill-input))
  )
 
+(push "/opt/local/bin" exec-path)
+
 ; start the friggin' shell
 (eshell)

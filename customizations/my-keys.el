@@ -28,3 +28,8 @@
   (interactive)
   (kill-buffer (current-buffer)
 )))
+
+; run Ruby tests
+(add-hook 'rinari-minor-mode-hook
+          (lambda ()
+            (define-key rinari-minor-mode-map (kbd "s-r") 'rinari-test)))
