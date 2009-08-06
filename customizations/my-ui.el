@@ -31,3 +31,8 @@
 (setq color-theme-is-global t)
 (load-file "~/.emacs.d/vendor/almost-monokai/color-theme-almost-monokai.el")
 (color-theme-almost-monokai)
+
+; colors
+(custom-set-faces
+ '(flymake-errline ((t :underline "red")))
+ '(flymake-warnline ((t :underline "green"))))

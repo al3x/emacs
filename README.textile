@@ -1,0 +1,20 @@
+h1. Introduction
+
+This is "Alex Payne":http://al3x.net/'s Emacs configuration. It's not designed to be a "starter kit":http://github.com/technomancy/emacs-starter-kit/tree/master. It's just some dude's preferred way to edit stuff.
+
+h1. Notes
+
+* Only tested under Emacs.app (--with-ns) on OS X; may not work with Aquamacs.
+* Not uncomfortable to use on a Mac, but also not explictly Mac-like.
+* Assumes option/alt is Meta, command/Apple is Super.
+* Probably more comfortable if you set caps lock to ctrl.
+* Assumes that you want to use Emacs for editing and your shell, but probably not serious email and web browsing.
+
+h1. Supported Languages
+
+* Scala
+* Ruby (and Rails)
+* JavaScript
+* Textile
+* YAML
+* more!
