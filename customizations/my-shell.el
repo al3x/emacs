@@ -1,6 +1,7 @@
 ; sane path
 (setq path "/bin:/usr/local/bin:/opt/local/bin:/opt/local/sbin:/usr/local/mysql/bin:/usr/local/google_appengine:/usr/bin:/usr/sbin")
 (setenv "PATH" path)
+(push "/usr/local/bin" exec-path)
 
 ; more bash-like autocomplete
 (setq eshell-cmpl-cycle-completions nil)
