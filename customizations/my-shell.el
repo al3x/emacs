@@ -15,7 +15,7 @@
 (setq comint-prompt-read-only)
 
 ; scroll to bottom on output, more like a terminal
-(setq  eshell-scroll-to-bottom-on-output t)
+(setq eshell-scroll-to-bottom-on-output t)
 (setq eshell-scroll-show-maximum-output t)
 
 ; colorful shell
@@ -25,8 +25,6 @@
 ; escape the shell
 (add-hook 'eshell-mode-hook
   '(lambda nil
+
    (local-set-key "\C-u" 'eshell-kill-input))
  )
-
-; start the friggin' shell
-;(eshell)

@@ -16,8 +16,8 @@
 (global-set-key (kbd "C-x C-c") 'execute-extended-command)
 (global-set-key (kbd "C-x c") 'execute-extended-command)
 
-; open/switch to shell
-(global-set-key (kbd "s-0") 'eshell)
+; switch to shell
+(global-set-key (kbd "s-0") 'ansi-term)
 
 ; search with ack
 (global-set-key (kbd "s-F") 'ack)
