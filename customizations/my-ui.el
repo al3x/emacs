@@ -1,5 +1,5 @@
 ; font
-(set-default-font "-apple-DejaVu_Sans_Mono-medium-normal-normal-*-14-*-*-*-m-0-iso10646-")
+(set-default-font "-apple-DejaVu_Sans_Mono-medium-normal-normal-*-15-*-*-*-m-0-iso10646-")
 
 ; window size
 (set-frame-size-according-to-resolution)
@@ -30,9 +30,7 @@
 (require 'color-theme)
 (setq color-theme-is-global t)
 (load-file "~/.emacs.d/vendor/twilight-emacs/color-theme-twilight.el")
-(load-file "~/.emacs.d/vendor/almost-monokai/color-theme-almost-monokai.el")
-;(color-theme-twilight)
-(color-theme-almost-monokai)
+(color-theme-twilight)
 
 ; colors
 (custom-set-faces
