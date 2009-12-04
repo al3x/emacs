@@ -1,3 +1,7 @@
+; sane path
+(setq path "/bin:/usr/local/bin:/opt/local/bin:/opt/local/sbin:/usr/local/mysql/bin:/usr/local/google_appengine:/usr/bin:/usr/sbin")
+(setenv "PATH" path)
+
 ; more bash-like autocomplete
 (setq eshell-cmpl-cycle-completions nil)
 
@@ -16,19 +20,13 @@
 
 ; colorful shell
 (require 'ansi-color)
-
 (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 
-; set path
+; escape the shell
 (add-hook 'eshell-mode-hook
   '(lambda nil
-   (let ((path))
-    (setq path "/bin:/usr/local/bin:/opt/local/bin:/opt/local/sbin:/usr/local/mysql/bin:/usr/local/google_appengine:/usr/bin:/usr/sbin")
-    (setenv "PATH" path))
    (local-set-key "\C-u" 'eshell-kill-input))
  )
-
-(push "/opt/local/bin" exec-path)
 
 ; start the friggin' shell
 ;(eshell)
