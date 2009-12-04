@@ -1,0 +1,55 @@
+This directory contains add-ons to Org-mode.
+
+These contributions are not part of GNU Emacs or of the official Org-mode
+package.  But the git repository for Org-mode is glad to provide useful way
+to distribute and develop them as long as they are distributed under a free
+software license.
+
+Please put your contribution in one of these three directories:
+
+LISP (emacs-lisp code)
+======================
+
+org-annotate-file.el     --- Annotate a file with org syntax
+org-annotation-helper.el --- Call remember directly from Firefox/Opera
+org-bookmark.el          --- Links to bookmarks
+org-browser-url.el       --- Store links to webpages directly from Firefox/Opera
+org-choose.el            --- Use TODO keywords to mark decision states
+org-collector.el         --- Collect properties into tables
+org-contribdir.el        --- Dummy file to mark the org contrib Lisp directory
+org-depend.el            --- TODO dependencies for Org-mode
+org-elisp-symbol.el      --- Org links to emacs-lisp symbols
+org-eval.el              --- The <lisp> tag, adapted from Muse
+org-eval-light.el        --- Evaluate in-buffer code on demand
+org-expiry.el 	         --- Expiry mechanism for Org entries
+org-exp-bibtex.el        --- Export citations to LaTeX and HTML
+org-export-generic.el    --- Export framework for configurable backends
+org-interactive-query.el --- Interactive modification of tags query
+org-invoice.el           --- Help manage client invoices in OrgMode
+org-jira.el              --- Add a jira:ticket protocol to Org
+org-mairix.el 	         --- Hook mairix search into Org for different MUAs
+org-mac-iCal.el          --- Imports events from iCal.app to the Emacs diary
+org-man.el 	         --- Support for links to manpages in Org-mode
+org-mtags.el 	         --- Support for some Muse-like tags in Org-mode
+org-panel.el 	         --- Simple routines for us with bad memory
+org-R.el                 --- Computation using the R language
+org-registry.el          --- A registry for Org links
+org2rem.el               --- Convert org appointments into reminders
+org-screen.el            --- Visit screen sessions through Org-mode links
+org-special-blocks.el    --- Turn blocks into LaTeX envs and HTML divs
+org-track.el             --- Keep up with Org development
+org-toc.el 	         --- Table of contents for Org-mode buffer
+orgtbl-sqlinsert.el      --- Convert Org-mode tables to SQL insertions.
+
+PACKAGES
+========
+
+org-export-freemind  --- exporting utilities from org-mode to freemind
+
+
+SCRIPTS (shell, bash, etc.)
+===========================
+
+dir2org.zsh          --- Org compatible fs structure output
+org2hpda	     --- Generate hipster pda style printouts from Org-mode
+ditaa.jar            --- ASCII to PNG converter by Stathis Sideris, GPL
