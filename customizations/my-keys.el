@@ -6,11 +6,17 @@
 ; Make yes-or-no questions answerable with 'y' or 'n'
 (fset 'yes-or-no-p 'y-or-n-p)
 
-; To be able to M-x without meta
-(global-set-key (kbd "C-x C-m") 'execute-extended-command)
-(global-set-key (kbd "C-x m") 'execute-extended-command)
+; to be able to C-x without going all the way to 'x' which sucks on
+; a Dvorak keyboard layout
+(keyboard-translate ?\C-t ?\C-x)
+(keyboard-translate ?\C-x ?\C-t)
 
-; switch to shell
+; To be able to M-x without meta - yes, this overwrites exiting but
+; I don't care because I quit Apple style
+(global-set-key (kbd "C-x C-c") 'execute-extended-command)
+(global-set-key (kbd "C-x c") 'execute-extended-command)
+
+; open/switch to shell
 (global-set-key (kbd "s-0") 'eshell)
 
 ; search with ack
@@ -31,5 +37,5 @@
 
 ; run Ruby tests
 (add-hook 'rinari-minor-mode-hook
-          (lambda ()
-            (define-key rinari-minor-mode-map (kbd "s-r") 'rinari-test)))
+  (lambda ()
+    (define-key rinari-minor-mode-map (kbd "s-r") 'rinari-test)))
