@@ -7,9 +7,8 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ; to be able to C-x without going all the way to 'x' which sucks on
-; a Dvorak keyboard layout
+; a Dvorak keyboard layuot
 (keyboard-translate ?\C-t ?\C-x)
-(keyboard-translate ?\C-x ?\C-t)
 
 ; To be able to M-x without meta - yes, this overwrites exiting but
 ; I don't care because I quit Apple style
@@ -28,6 +27,9 @@
 ; buffer switching
 (global-set-key [(super {)] 'previous-buffer)
 (global-set-key [(super })] 'next-buffer)
+
+; window switching
+(global-set-key (kbd "s-`") 'other-window)
 
 ; close window
 (global-set-key [(super w)] (lambda ()
