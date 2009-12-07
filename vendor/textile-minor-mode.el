@@ -262,32 +262,32 @@ non-matching parentheses"
   :group 'faces)
 
 (defface textile-h1-face
-  '((t (:height 2.0 :weight bold)))
+  '((t (:weight bold)))
   "Face used to highlight h1 headers."
   :group 'textile-faces)
 
 (defface textile-h2-face
-  '((t (:height 1.75 :weight bold)))
+  '((t (:weight bold)))
   "Face used to highlight h2 headers."
   :group 'textile-faces)
 
 (defface textile-h3-face
-  '((t (:height 1.6 :weight bold)))
+  '((t (:weight bold)))
   "Face used to highlight h3 headers."
   :group 'textile-faces)
 
 (defface textile-h4-face
-  '((t (:height 1.35 :weight bold)))
+  '((t (:weight bold)))
   "Face used to highlight h4 headers."
   :group 'textile-faces)
 
 (defface textile-h5-face
-  '((t (:height 1.2 :weight bold)))
+  '((t (:weight bold)))
   "Face used to highlight h5 headers."
   :group 'textile-faces)
 
 (defface textile-h6-face
-  '((t (:height 1.0 :weight bold)))
+  '((t (:weight bold)))
   "Face used to highlight h6 headers."
   :group 'textile-faces)
 
