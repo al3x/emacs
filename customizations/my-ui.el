@@ -1,5 +1,5 @@
 ; font
-(set-default-font "-apple-DejaVu_Sans_Mono-medium-normal-normal-*-15-*-*-*-m-0-iso10646-")
+(set-default-font "-apple-DejaVu_Sans_Mono-medium-normal-normal-*-14-*-*-*-m-0-iso10646-")
 
 ; window size
 (set-frame-size-according-to-resolution)
@@ -7,8 +7,10 @@
 ; don't display startup message
 (setq inhibit-startup-message t)
 
-; no toolbar or scrollbar
-(scroll-bar-mode -1)
+; no scrollbar
+(scroll-bar-mode t)
+
+; no toolbar
 (tool-bar-mode -1)
 
 ; blink cursor
