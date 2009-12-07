@@ -25,3 +25,6 @@
 [submodule "vendor/swank-clojure"]
 	path = vendor/swank-clojure
 	url = git://github.com/jochu/swank-clojure.git
+[submodule "vendor/org-mode"]
+	path = vendor/org-mode
+	url = git://repo.or.cz/org-mode.git

@@ -42,3 +42,9 @@
 (add-hook 'rinari-minor-mode-hook
   (lambda ()
     (define-key rinari-minor-mode-map (kbd "s-r") 'rinari-test)))
+
+; org mode requirements
+(add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
+(global-set-key "\C-cl" 'org-store-link)
+(global-set-key "\C-ca" 'org-agenda)
+(global-set-key "\C-cb" 'org-iswitchb)
