@@ -46,6 +46,7 @@
 (require 'ido)
 (ido-mode t)
 (setq ido-enable-flex-matching t) ; case insensitive matching
+(add-to-list 'ido-ignore-files "\\.DS_Store")
 
 ; kill ring browsing
 (require 'browse-kill-ring+)
@@ -53,3 +54,9 @@
 
 ; automatically clean up old buffers
 (require 'midnight)
+
+; use default Mac browser
+(setq browse-url-browser-function 'browse-url-default-macosx-browser)
+
+; delete files by moving them to the OS X trash
+(setq delete-by-moving-to-trash t)
