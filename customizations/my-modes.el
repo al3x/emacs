@@ -52,7 +52,7 @@
 (add-to-list 'auto-mode-alist '("\\.html\\.erb\\'" . eruby-nxhtml-mumamo))
 
 (eval-after-load 'nxhtml
-  '(eval-after-load 'color-theme-almost-monokai
+  '(eval-after-load 'color-theme
      (custom-set-faces
        '(mumamo-background-chunk-major ((((class color) (min-colors 88) (background dark)) (:background "#242424"))))
        '(mumamo-background-chunk-submode1 ((((class color) (min-colors 88) (background dark)) (:background "#373736"))))
@@ -60,7 +60,7 @@
 
 ; Org
 (require 'org-install)
-(setq org-mobile-directory "/Users/al3x/org/")
+(setq org-mobile-directory "~/org/")
 (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
