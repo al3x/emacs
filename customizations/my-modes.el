@@ -65,3 +65,15 @@
 (define-key global-map "\C-cl" 'org-store-link)
 (define-key global-map "\C-ca" 'org-agenda)
 (setq org-log-done t)
+
+; swank-clojure
+(setq swank-clojure-jar-path "~/src/third_party/clojure/clojure/clojure-1.1.0-master-SNAPSHOT.jar")
+(setq swank-clojure-extra-classpaths
+      (list "~/src/third_party/clojure/clojure-contrib/clojure-contrib.jar"))
+
+(require 'clojure-mode)
+(require 'swank-clojure-autoload)
+(require 'slime)
+
+(eval-after-load "slime" (slime-setup '(slime-repl)))
+(slime-setup)
