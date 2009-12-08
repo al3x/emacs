@@ -8,7 +8,7 @@
 (setq inhibit-startup-message t)
 
 ; no scrollbar
-(scroll-bar-mode t)
+(scroll-bar-mode -1)
 
 ; no toolbar
 (tool-bar-mode -1)
