@@ -41,5 +41,12 @@
 ; load personal customizations (keybindings, colors, etc.)
 (mapcar 'load-directory '("~/.emacs.d/customizations"))
 
+; per-host customizations
+(let ((hostname (shell-command-to-string "/bin/hostname")))
+  (if (eq hostname "jaya.local")
+      (message "on work machine")
+      (load-file "~/.emacs.d/office_tweaks.el")
+    ))
+
 ; run server for emacsclient interactions
-(server-start)
+;(server-start)
