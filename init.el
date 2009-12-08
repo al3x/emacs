@@ -42,9 +42,8 @@
 (mapcar 'load-directory '("~/.emacs.d/customizations"))
 
 ; per-host customizations
-(let ((hostname (shell-command-to-string "/bin/hostname")))
-  (if (eq hostname "jaya.local")
-      (message "on work machine")
+(let ((hostname (chomp (shell-command-to-string "/bin/hostname"))))
+  (if (string-equal hostname "jaya.local")
       (load-file "~/.emacs.d/office_tweaks.el")
     ))
 
