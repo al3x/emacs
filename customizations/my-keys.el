@@ -38,6 +38,10 @@
   (kill-buffer (current-buffer)
 )))
 
+; navigating through errosr
+(global-set-key [(meta n)] 'next-error)
+(global-set-key [(meta p)] 'previous-error)
+
 ; run Ruby tests
 (add-hook 'rinari-minor-mode-hook
   (lambda ()
