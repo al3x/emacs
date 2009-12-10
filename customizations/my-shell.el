@@ -1,7 +1,6 @@
 ; sane path
-(setq path "/bin:/usr/local/bin:/opt/local/bin:/opt/local/sbin:/usr/local/mysql/bin:/usr/local/google_appengine:/usr/bin:/usr/sbin")
+(setq path "/bin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/mysql/bin:/usr/local/google_appengine")
 (setenv "PATH" path)
-(push "/usr/local/bin" exec-path)
 
 ; more bash-like autocomplete
 (setq eshell-cmpl-cycle-completions nil)
@@ -25,7 +24,4 @@
 
 ; escape the shell
 (add-hook 'eshell-mode-hook
-  '(lambda nil
-
-   (local-set-key "\C-u" 'eshell-kill-input))
- )
+  '(lambda nil (local-set-key "\C-u" 'eshell-kill-input)))
