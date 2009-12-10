@@ -7,7 +7,10 @@
 (autoload 'magit-status "magit" nil t)
 
 ; Ack
-(require 'ack)
+(autoload 'ack-same "full-ack" nil t)
+(autoload 'ack "full-ack" nil t)
+(autoload 'ack-find-same-file "full-ack" nil t)
+(autoload 'ack-find-file "full-ack" nil t)
 
 ; Nav
 (require 'nav)
