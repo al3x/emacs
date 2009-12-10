@@ -1,6 +1,9 @@
 ; enable Common Lisp support
 (require 'cl)
 
+; some modes need to call stuff on the exec-path
+(push "/usr/local/bin" exec-path)
+
 ; add directories to the load path
 (add-to-list 'load-path "~/.emacs.d")
 (add-to-list 'load-path "~/.emacs.d/customizations")
@@ -22,7 +25,7 @@
 (vendor 'browse-kill-ring)
 (vendor 'yaml-mode)
 (vendor 'rinari)
-(vendor 'ack)
+(vendor 'full-ack)
 (vendor 'textile-minor-mode)
 (vendor 'magit)
 (vendor 'save-visited-files)
