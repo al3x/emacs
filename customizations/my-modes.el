@@ -78,3 +78,7 @@
 
 (eval-after-load "slime" (slime-setup '(slime-repl)))
 (slime-setup)
+
+; thrift-mode
+(require 'thrift-mode)
+
