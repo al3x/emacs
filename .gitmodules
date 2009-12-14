@@ -28,3 +28,6 @@
 [submodule "vendor/org-mode"]
 	path = vendor/org-mode
 	url = git://repo.or.cz/org-mode.git
+[submodule "vendor/mo-git-blame"]
+	path = vendor/mo-git-blame
+	url = git://git.bunkus.org/mo-git-blame.git

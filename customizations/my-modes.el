@@ -5,6 +5,8 @@
 ; Git
 (require 'magit)
 (autoload 'magit-status "magit" nil t)
+(autoload 'mo-git-blame-file "mo-git-blame" nil t)
+(autoload 'mo-git-blame-current "mo-git-blame" nil t)
 
 ; Ack
 (autoload 'ack-same "full-ack" nil t)
