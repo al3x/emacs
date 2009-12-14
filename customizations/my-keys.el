@@ -7,11 +7,11 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 
 ; to be able to C-x without going all the way to 'x' which sucks on
-; a Dvorak keyboard layuot
+; a Dvorak keyboard layout
 (keyboard-translate ?\C-t ?\C-x)
 
 ; To be able to M-x without meta - yes, this overwrites exiting but
-; I don't care because I quit Apple style
+; I don't care because I quit Apple style with s-q
 (global-set-key (kbd "C-x C-c") 'execute-extended-command)
 (global-set-key (kbd "C-x c") 'execute-extended-command)
 (global-set-key (kbd "C-x m") 'execute-extended-command)
@@ -38,11 +38,11 @@
   (kill-buffer (current-buffer)
 )))
 
-; navigating through errosr
+; navigating through errors
 (global-set-key [(meta n)] 'next-error)
 (global-set-key [(meta p)] 'previous-error)
 
-; run Ruby tests
+; run Ruby tests, TextMate-style
 (add-hook 'rinari-minor-mode-hook
   (lambda ()
     (define-key rinari-minor-mode-map (kbd "s-r") 'rinari-test)))
