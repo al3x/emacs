@@ -1,22 +1,40 @@
 h1. Introduction
 
-This is the  Emacs configuration of "Alex Payne":http://al3x.net/. It's not designed to be a "starter kit":http://github.com/technomancy/emacs-starter-kit/tree/master. It's just some dude's preferred way to edit stuff.
+This is the Emacs configuration that "Alex Payne":http://al3x.net/ uses. It's not designed to be a "starter kit":http://github.com/technomancy/emacs-starter-kit/tree/master. It's just some dude's preferred way to edit stuff, when using Emacs.
 
-The author notes that he doesn't regularly _use_ Emacs. It's just a way to explore different ways of working periodically, since no other editing platform is as malleable.
-
-h1. Notes
+h2. Notes
 
 * Only tested under Emacs.app (--with-ns) on OS X; may not work with Aquamacs.
 * Not uncomfortable to use on a Mac, but also not explictly Mac-like.
+* Has some strange accomodations for Dvorak typists, such as C-t being mapped to C-x, and being able to C-x c (actually C-t c) to do a M-x.
 * Assumes option/alt is Meta, command/Apple is Super.
 * Probably more comfortable if you set caps lock to ctrl.
-* Assumes that you want to use Emacs for editing and your shell, but probably not serious email and web browsing.
+* Assumes that you want to use Emacs for editing and maybe very occassionally as your shell, but probably not for email, news, or web browsing.
 
-h1. Supported Languages
+h2. Supported Languages
+
+Beyond what Emacs supports out of the box:
 
 * Scala
-* Ruby (and Rails)
+* Ruby
 * JavaScript
 * Textile
 * YAML
-* more!
+* Clojure
+* Thrift
+* XML/HTML
+
+h2. Additional Modes
+
+* org - outlining and personal organization
+* centered-cursor - keeps the current buffer centered based on your cusor location
+* nav - simple and fast project navigation (think TextMate's project drawer)
+* magit - beautiful integration with the Git VCS
+* textmate - some helpful features and familiar keymappings from the TextMate editor
+* full-ack - a nice interface to the Ack grep replacement utility
+
+h2. Colors
+
+* themes: everything in color-theme plus "twilight" and "almost monokai"
+* nice colors for diff-mode (assumes a dark theme)
+* nice colors for errors in flymake-mode
