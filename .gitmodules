@@ -31,3 +31,6 @@
 [submodule "vendor/mo-git-blame"]
 	path = vendor/mo-git-blame
 	url = git://git.bunkus.org/mo-git-blame.git
+[submodule "vendor/smart-tab"]
+	path = vendor/smart-tab
+	url = git://github.com/dhax/smart-tab.git

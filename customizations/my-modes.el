@@ -84,3 +84,7 @@
 ; thrift-mode
 (require 'thrift-mode)
 
+; smart-tab
+(require 'smart-tab)
+(global-smart-tab-mode 1)
+(setq smart-tab-using-hippie-expand t)
