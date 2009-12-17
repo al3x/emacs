@@ -26,7 +26,6 @@ Beyond what Emacs supports out of the box:
 
 h2. Additional Modes
 
-* org - outlining and personal organization
 * centered-cursor - keeps the current buffer centered based on your cusor location
 * nav - simple and fast project navigation (think TextMate's project drawer)
 * magit - beautiful integration with the Git VCS

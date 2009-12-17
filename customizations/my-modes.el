@@ -62,12 +62,6 @@
        '(mumamo-background-chunk-submode1 ((((class color) (min-colors 88) (background dark)) (:background "#373736"))))
 )))
 
-; Org
-(require 'org-install)
-(setq org-mobile-directory "~/org/")
-(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-(setq org-log-done t)
-
 ; swank-clojure
 (setq swank-clojure-jar-path "~/src/third_party/clojure/clojure/clojure-1.1.0-master-SNAPSHOT.jar")
 (setq swank-clojure-extra-classpaths
