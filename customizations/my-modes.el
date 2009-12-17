@@ -80,4 +80,4 @@
 ; smart-tab
 (require 'smart-tab)
 (global-smart-tab-mode 1)
-(setq smart-tab-using-hippie-expand t)
+(setq smart-tab-using-hippie-expand nil)
