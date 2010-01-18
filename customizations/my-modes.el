@@ -81,3 +81,12 @@
 (require 'smart-tab)
 (global-smart-tab-mode 1)
 (setq smart-tab-using-hippie-expand nil)
+
+; paredit
+(autoload 'paredit-mode "paredit"
+  "Minor mode for pseudo-structurally editing Lisp code."
+  t)
+(mapc (lambda (mode)
+        (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
+     (add-hook hook (lambda () (paredit-mode +1)))))
+    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))

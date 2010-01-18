@@ -4,13 +4,13 @@
 ;; Copyright (C) 2009 Scala Dev Team at EPFL
 ;; Authors: See AUTHORS file
 ;; Keywords: scala languages oop
-;; $Id: scala-mode-indent.el 17339 2009-03-20 09:15:21Z nielsen $
+;; $Id$
 
 ;;; License
 
 ;; SCALA LICENSE
 ;;  
-;; Copyright (c) 2002-2009 EPFL, Lausanne, unless otherwise specified.
+;; Copyright (c) 2002-2010 EPFL, Lausanne, unless otherwise specified.
 ;; All rights reserved.
 ;;  
 ;; This software was developed by the Programming Methods Laboratory of the
@@ -54,7 +54,6 @@
   :type 'integer
   :group 'scala)
 
-
 (defun scala-parse-partial-sexp ()
   (parse-partial-sexp (point-min) (point)))
 
@@ -87,7 +86,6 @@
 	   (eq (get-text-property (point) 'face) 'font-lock-comment-face))
     nil))
 
-
 (defun scala-in-string-p ()
   "Return t iff the point is inside a string."
   (if font-lock-mode
@@ -106,8 +104,8 @@
              (not (= (char-after) ?\/))
              (scala-comment-indentation))
         (scala-indentation-from-following)
-        (scala-indentation-from-preceding)
-        (scala-indentation-from-block)
+	(scala-indentation-from-preceding)
+	(scala-indentation-from-block)
         0)))
 
 (defun scala-comment-indentation ()
@@ -119,29 +117,65 @@
       (+ 1 (current-column))
     (current-column)))
 
-(defun scala-block-indentation ()
-  (let ((block-start-eol (scala-point-after (end-of-line)))
+(defun crawl-back-to-template ()
+  (if (or (looking-at "extends")
+	  (eq (char-before) ?\)))
+      (backward-sexp)
+    (backward-word))
+  (cond 
+   ((looking-at template-dcf-keywords-re) t)
+   ((looking-at template-middle-keywords-re)
+    (crawl-back-to-template))
+   ((not (looking-at scala-keywords-re))
+    (crawl-back-to-template))
+   (t nil)))
+
+;; assumes one point to right of nearest opening block
+;; Oops we can case inside a block, no match required.
+;; and no keyword is required.  Witness Actor's receive method.
+;; Instead of looking for match|catch|receive|... which could be now anything
+;; See if the FIRST word within the opening block is a case.
+(defun scala-mode-match-catch-block-p ()
+  (save-excursion
+    (backward-word)
+    (looking-at "match\\|catch\\|receive\\|react")))
+
+;; assumes one point to right of nearest opening block 
+(defun scala-block-indentation (&optional case-or-eob)
+  (let ((cpos (point))
+	(block-start-eol (scala-point-after (end-of-line)))
         (block-after-spc (scala-point-after (scala-forward-spaces))))
-    (if (> block-after-spc block-start-eol)
-	(progn
-	  (beginning-of-line)
-	  (when (search-forward ")" block-start-eol t)
+    (if (> block-after-spc block-start-eol)  ;; simple block open {
+	(if (scala-mode-match-catch-block-p)
+	    (progn
+	      (if case-or-eob
+		  (+ (current-indentation) scala-mode-indent:step)
+		(+ (current-indentation) (* 2 scala-mode-indent:step))))
+	  (progn                             ;; properly indent first line after template 
+	    (backward-char)                  ;; on the '{'
+	    (scala-backward-spaces)          
+	    (unless (crawl-back-to-template)         ;; class,trait,object crawl to template start
+		(goto-char cpos))
+	    (+ (current-indentation) scala-mode-indent:step)))
+      (progn                                 ;; block open with stuff { ...
+	(goto-char cpos)
+	(if (search-forward "=>" block-start-eol t)
+	    (+ (current-indentation) scala-mode-indent:step)
+	  (progn                            ;; properly indent mulitline args in a template
 	    (scala-forward-spaces)
-	    (backward-sexp))
-	  (+ (current-indentation) scala-mode-indent:step))
-      (current-column))))
+	    (current-column)))))))
 
 (defun scala-indentation-from-following ()
   ;; Return suggested indentation based on the following part of the
-  ;; current expression. Return nil if indentation cannot be guessed.
+  ;; current expression. Return nil if indentation cannot be guessed.  
   (save-excursion
     (scala-forward-spaces (scala-point-after (end-of-line)))
     (cond
      ((eobp) nil)
      ((= (char-syntax (char-after)) ?\))
       (let ((parse-sexp-ignore-comments t))
-        (goto-char (1+ (scan-sexps (1+ (point)) -1))))
-      (- (scala-block-indentation) scala-mode-indent:step))
+        (goto-char (1+ (scan-sexps (1+ (point)) -1)))
+	(- (scala-block-indentation t) scala-mode-indent:step)))
      ((looking-at scala-expr-middle-re)
       ;; [...] this is a somewhat of a hack.
       (let ((matching-kw (cdr (assoc (match-string-no-properties 0)
@@ -156,27 +190,40 @@
   ;; Return suggested indentation based on the preceding part of the
   ;; current expression. Return nil if indentation cannot be guessed.
   (save-excursion
-    (scala-backward-spaces)
-    (and (not (bobp))
-	 (if (eq (char-syntax (char-before)) ?\()
-	     (scala-block-indentation)
-	   (progn
-	     (when (eq (char-before) ?\))
-	       (backward-sexp)
-	       (scala-backward-spaces))
-	     (scala-looking-at-backward scala-expr-start-re)))
-	 (+ (current-indentation) scala-mode-indent:step))))
+    (let ((am-case (scala-indenting-case-line-p)))
+      (scala-backward-spaces)
+      (when (not (bobp))
+	(cond
+	 ((eq (char-syntax (char-before)) ?\()
+	  (scala-block-indentation am-case))
+	 ((eq (char-before) ?\=)
+	  (backward-sexp)
+	  (+ (current-indentation) scala-mode-indent:step))
+	 ((progn 
+	    (when (eq (char-before) ?\))
+	      (backward-sexp)
+	      (scala-backward-spaces))
+	    (scala-looking-at-backward scala-expr-start-re))
+	  (+ (current-indentation) scala-mode-indent:step))
+	 (t nil))))))
 
+(defun scala-indenting-case-line-p ()
+  (save-excursion
+    (beginning-of-line)
+    (scala-forward-spaces)
+    (looking-at "case")))
 
 (defun scala-indentation-from-block ()
   ;; Return suggested indentation based on the current block.
   (save-excursion
-    (let* ((state (scala-parse-partial-sexp))
+    (let* ((am-case (scala-indenting-case-line-p))
+	   (state (scala-parse-partial-sexp))
            (block-start (nth 1 state)))
       (if (not block-start)
           0
-        (goto-char (1+ block-start))
-        (scala-block-indentation)))))
+	(progn
+	  (goto-char (1+ block-start))
+	  (scala-block-indentation am-case))))))
 
 (defun scala-indent-line-to (column)
   "Indent current line to COLUMN and perhaps move point.
@@ -194,8 +241,7 @@ When called repeatedly, indent each time one stop further on the right."
   (if (or (eq last-command this-command)
           (eq last-command 'scala-undent-line))
       (scala-indent-line-to (+ (current-indentation) scala-mode-indent:step))
-    (let 
-	((indentation (scala-indentation)))
+    (let ((indentation (scala-indentation)))
       (scala-indent-line-to indentation))))
 
 (defun scala-undent-line ()

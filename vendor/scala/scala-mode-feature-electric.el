@@ -5,13 +5,13 @@
 ;; Modified by Anders Bach Nielsen <andersbach.nielsen at epfl dot ch> to fit into the scala mode
 ;; Based on ruby-electric by Dee Zsombor <dee dot zsombor at gmail dot com>.
 ;; Keywords: scala languages oop
-;; $Id: scala-mode-feature-electric.el 17069 2009-02-10 08:30:51Z nielsen $
+;; $Id$
 
 ;;; License
 
 ;; SCALA LICENSE
 ;;  
-;; Copyright (c) 2002-2009 EPFL, Lausanne, unless otherwise specified.
+;; Copyright (c) 2002-2010 EPFL, Lausanne, unless otherwise specified.
 ;; All rights reserved.
 ;;  
 ;; This software was developed by the Programming Methods Laboratory of the
@@ -135,7 +135,7 @@ closing bracket or not."
 
 (defun scala-mode-feature-electric-is-last-command-char-expandable-punct-p()
   (or (memq 'all scala-mode-feature:electric-expand-delimiters-list)
-      (memq last-command-char scala-mode-feature:electric-expand-delimiters-list)))
+      (memq last-command-event scala-mode-feature:electric-expand-delimiters-list)))
 
 (defun scala-mode-feature-electric-curlies(arg)
   (interactive "P")
@@ -160,7 +160,7 @@ closing bracket or not."
   (and (scala-mode-feature-electric-is-last-command-char-expandable-punct-p)
        (scala-mode-feature-electric-code-at-point-p)
        (save-excursion
-         (insert (cdr (assoc last-command-char
+         (insert (cdr (assoc last-command-event
                              scala-mode-feature-electric-matching-delimeter-alist))))))
 
 (defun scala-mode-feature-electric-install ()
