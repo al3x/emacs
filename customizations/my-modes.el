@@ -67,7 +67,7 @@
 (setq swank-clojure-extra-classpaths
       (list "~/src/third_party/clojure/clojure-contrib/clojure-contrib.jar"))
 (require 'clojure-mode)
-(require 'swank-clojure-autoload)
+;(require 'swank-clojure-autoload)
 
 ; SLIME
 (require 'slime)
@@ -88,5 +88,5 @@
   t)
 (mapc (lambda (mode)
         (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
-     (add-hook hook (lambda () (paredit-mode +1)))))
+     (add-hook hook (lambda () (paredit-mode 1)))))
     '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
