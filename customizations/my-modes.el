@@ -74,8 +74,13 @@
 (eval-after-load "slime" (slime-setup '(slime-repl)))
 (slime-setup)
 
-; thrift-mode
+; Thrift
 (require 'thrift-mode)
+
+; Haskell
+(add-to-list 'auto-mode-alist '("\\.hs$" . haskell-mode))
+(add-hook 'haskell-mode-hook 'turn-on-haskell-doc-mode)
+(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 
 ; smart-tab
 (require 'smart-tab)
@@ -83,10 +88,10 @@
 (setq smart-tab-using-hippie-expand nil)
 
 ; paredit
-(autoload 'paredit-mode "paredit"
-  "Minor mode for pseudo-structurally editing Lisp code."
-  t)
-(mapc (lambda (mode)
-        (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
-     (add-hook hook (lambda () (paredit-mode 1)))))
-    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
+;(autoload 'paredit-mode "paredit"
+;  "Minor mode for pseudo-structurally editing Lisp code."
+;  t)
+;(mapc (lambda (mode)
+;        (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
+;     (add-hook hook (lambda () (paredit-mode 1)))))
+;    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
