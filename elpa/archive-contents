@@ -1,4 +1,10 @@
 (1
+ (applescript-mode .
+		   [(20090321)
+		    nil "major mode for editing AppleScript source" single])
+ (mediawiki .
+	    [(1 1)
+	     nil "mediawiki frontend" single])
  (wrap-region .
 	      [(0 0 1)
 	       nil "Wrap text with punctation or tag" single])
@@ -323,14 +329,14 @@
 		   [(1 1)
 		    nil "incremental search for the kill ring" single])
  (tex-math-preview .
-		   [(6)
+		   [(8)
 		    nil "preview TeX math expressions." single])
  (gtk-look .
-	   [(17)
+	   [(18)
 	    nil "lookup Gtk and Gnome documentation." single])
  (xtide .
-	[(10)
-	 nil "XTide display in Emacs.      -*- coding: latin-1 -*-" single])
+	[(16)
+	 nil "XTide display in Emacs" single])
  (compilation-recenter-end .
 			   [(4)
 			    nil "compilation-mode window recentre" single])
