@@ -1,8 +1,3 @@
-(setq default-input-method "MacOSX")
-
-; option/alt is meta key
-(setq mac-command-key-is-meta nil)
-
 ; Make yes-or-no questions answerable with 'y' or 'n'
 (fset 'yes-or-no-p 'y-or-n-p)
 
@@ -17,35 +12,38 @@
 (global-set-key (kbd "C-x m") 'execute-extended-command)
 
 ; switch to shell
-(global-set-key (kbd "s-0") 'ansi-term)
+(global-set-key (kbd "M-0") 'ansi-term)
 
 ; search with ack
-(global-set-key (kbd "s-F") 'ack)
+(global-set-key (kbd "M-F") 'ack)
 
 ; open file
-(global-set-key [(super o)] 'find-file)
+(global-set-key (kbd "M-o") 'find-file)
 
 ; buffer switching
-(global-set-key [(super {)] 'previous-buffer)
-(global-set-key [(super })] 'next-buffer)
+(global-set-key (kbd "M-{") 'previous-buffer)
+(global-set-key (kbd "M-}") 'next-buffer)
 
 ; window switching
-(global-set-key (kbd "s-`") 'other-window)
+(global-set-key (kbd "M-`") 'other-window)
 
 ; close window
-(global-set-key [(super w)] (lambda ()
+(global-set-key (kbd "M-w") (lambda ()
   (interactive)
   (kill-buffer (current-buffer)
 )))
 
+; save buffer
+(global-set-key (kbd "M-s") 'save-buffer)
+
 ; navigating through errors
-(global-set-key [(meta n)] 'next-error)
-(global-set-key [(meta p)] 'previous-error)
+(global-set-key (kbd "M-n") 'next-error)
+(global-set-key (kbd "M-p") 'previous-error)
 
 ; run Ruby tests, TextMate-style
 (add-hook 'rinari-minor-mode-hook
   (lambda ()
-    (define-key rinari-minor-mode-map (kbd "s-r") 'rinari-test)))
+    (define-key rinari-minor-mode-map (kbd "M-r") 'rinari-test)))
 
 ; magit
 (global-set-key (kbd "C-c i") 'magit-status)

@@ -1,5 +1,5 @@
 ; font
-(set-default-font "-apple-DejaVu_Sans_Mono-medium-normal-normal-*-14-*-*-*-m-0-iso10646-")
+(set-default-font "-unknown-DejaVu Sans Mono-medium-normal-normal-*-20-*-*-*-m-0-iso10646-1")
 
 ; don't display startup message
 (setq inhibit-startup-message t)
@@ -12,6 +12,9 @@
 
 ; blink cursor
 (blink-cursor-mode t)
+
+; no menu bar
+(menu-bar-mode -1)
 
 ; highlight current line
 (global-hl-line-mode t)
