@@ -5,3 +5,4 @@
 .saveplace
 tramp
 vendor/nav/.hg/
+*.elc
