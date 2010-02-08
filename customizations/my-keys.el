@@ -40,6 +40,12 @@
 (global-set-key (kbd "M-n") 'next-error)
 (global-set-key (kbd "M-p") 'previous-error)
 
+; paste
+(global-set-key (kbd "M-v") 'yank)
+
+; undo
+(global-set-key (kbd "M-z") 'undo)
+
 ; run Ruby tests, TextMate-style
 (add-hook 'rinari-minor-mode-hook
   (lambda ()

@@ -67,7 +67,6 @@
 (setq swank-clojure-extra-classpaths
       (list "~/src/third_party/clojure/clojure-contrib/clojure-contrib.jar"))
 (require 'clojure-mode)
-;(require 'swank-clojure-autoload)
 
 ; SLIME
 (require 'slime)
@@ -88,10 +87,13 @@
 (setq smart-tab-using-hippie-expand nil)
 
 ; paredit
-;(autoload 'paredit-mode "paredit"
-;  "Minor mode for pseudo-structurally editing Lisp code."
-;  t)
-;(mapc (lambda (mode)
-;        (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
-;     (add-hook hook (lambda () (paredit-mode 1)))))
-;    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
+(autoload 'paredit-mode "paredit"
+  "Minor mode for pseudo-structurally editing Lisp code." t)
+(add-hook 'emacs-lisp-mode-hook       (lambda () (paredit-mode +1)))
+(add-hook 'lisp-mode-hook             (lambda () (paredit-mode +1)))
+(add-hook 'lisp-interaction-mode-hook (lambda () (paredit-mode +1)))
+(add-hook 'slime-mode-hook            (lambda () (paredit-mode +1)))
+(add-hook 'slime-repl-mode-hook       (lambda () (paredit-mode +1)))
+(add-hook 'clojure-mode-hook          (lambda () (paredit-mode +1)))
+
+
