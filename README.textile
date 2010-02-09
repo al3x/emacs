@@ -2,14 +2,14 @@ h1. Introduction
 
 This is the Emacs configuration that "Alex Payne":http://al3x.net/ uses. It's not designed to be a "starter kit":http://github.com/technomancy/emacs-starter-kit/tree/master. It's just some dude's preferred way to edit stuff, when using Emacs.
 
-h2. Notes
+h2. Overview
 
-* Only tested under Emacs.app (--with-ns) on OS X; may not work with Aquamacs.
-* Not uncomfortable to use on a Mac, but also not explictly Mac-like.
-* Has some strange accomodations for Dvorak typists, such as C-t being mapped to C-x, and being able to C-x c (actually C-t c) to do a M-x.
-* Assumes option/alt is Meta, command/Apple is Super.
-* Probably more comfortable if you set caps lock to ctrl.
-* Assumes that you want to use Emacs for editing and maybe very occassionally as your shell, but probably not for email, news, or web browsing.
+* Works on the Mac under nightly builds of Emacs.app (Emacs 23).
+* Works on Linux under the Ubuntu release of Emacs 23 (GTK).
+* Different keybindings and tweaks for each platform.
+* Has some strange accommodations for Dvorak typists, such as C-t being mapped to C-x, and being able to C-x c (actually C-t c) to do a M-x.
+* More comfortable if you set caps lock to act as ctrl.
+* Assumes that you want to use Emacs for editing and maybe very occasionally as your shell, but probably not for email, news, or web browsing.
 
 h2. Supported Languages
 
@@ -23,6 +23,7 @@ Beyond what Emacs supports out of the box:
 * Clojure
 * Thrift
 * XML/HTML
+* Haskell
 
 h2. Additional Modes
 
@@ -31,9 +32,11 @@ h2. Additional Modes
 * magit - beautiful integration with the Git VCS
 * textmate - some helpful features and familiar keymappings from the TextMate editor
 * full-ack - a nice interface to the Ack grep replacement utility
+* smart-tab - autocompletion just like your fingers are used to from the shell
+* more!
 
 h2. Colors
 
-* themes: everything in color-theme plus "twilight" and "almost monokai"
+* defaults to the pleasantly dark Twilight theme
 * nice colors for diff-mode (assumes a dark theme)
 * nice colors for errors in flymake-mode
