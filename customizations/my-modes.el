@@ -67,7 +67,6 @@
 (setq swank-clojure-extra-classpaths
       (list "~/src/third_party/clojure/clojure-contrib/clojure-contrib.jar"))
 (require 'clojure-mode)
-;(require 'swank-clojure-autoload)
 
 ; SLIME
 (require 'slime)

@@ -21,11 +21,6 @@
 ; disable backup files (foo~)
 (setq backup-inhibited t)
 
-; save opened files across sessions
-;(require 'save-visited-files)
-;(open-visited-files)
-;(save-visited-files-mode 1)
-
 ; save cursor position within files
 (require 'saveplace)
 (setq save-place-file "~/.emacs.d/.saveplace")
@@ -54,12 +49,6 @@
 
 ; automatically clean up old buffers
 (require 'midnight)
-
-; use default Mac browser
-(setq browse-url-browser-function 'browse-url-default-macosx-browser)
-
-; delete files by moving them to the OS X trash
-(setq delete-by-moving-to-trash t)
 
 ; pick up changes to files on disk automatically (ie, after git pull)
 (global-auto-revert-mode 1)

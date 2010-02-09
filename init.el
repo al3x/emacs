@@ -64,10 +64,15 @@
 ; load personal customizations (keybindings, colors, etc.)
 (mapcar 'load-directory '("~/.emacs.d/customizations"))
 
+; load conditional customizations
+(if (featurep 'ns
+    ;; we're in Emacs.app on Mac OS X
+    (mapcar 'load-directory '("~/.emacs.d/mac-customizations")))
+    ;; we're probably on Linux
+    (mapcar 'load-directory '("~/.emacs.d/linux-customizations")))
+
 ; per-host customizations
 (let ((hostname (chomp (shell-command-to-string "/bin/hostname"))))
   (if (string-equal hostname "jaya.local")
-      (load-file "~/.emacs.d/office_tweaks.el")
-    ))
-
+      (load-file "~/.emacs.d/office_tweaks.el")))
 
