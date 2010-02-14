@@ -16,12 +16,6 @@
 [submodule "vendor/magit"]
 	path = vendor/magit
 	url = git://gitorious.org/magit/mainline.git
-[submodule "vendor/clojure-mode"]
-	path = vendor/clojure-mode
-	url = git://github.com/technomancy/clojure-mode.git
-[submodule "vendor/swank-clojure"]
-	path = vendor/swank-clojure
-	url = git://github.com/technomancy/swank-clojure.git
 [submodule "vendor/mo-git-blame"]
 	path = vendor/mo-git-blame
 	url = git://git.bunkus.org/mo-git-blame.git

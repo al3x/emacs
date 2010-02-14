@@ -63,16 +63,15 @@
 )))
 
 ; swank-clojure
-(setq swank-clojure-jar-path "/usr/local/Cellar/clojure/1.1.0/clojure.jar")
-(setq swank-clojure-extra-classpaths
-      (list "/usr/local/Cellar/clojure-contrib/HEAD/clojure-contrib-1.2.0-SNAPSHOT.jar"))
-(require 'clojure-mode)
-(require 'swank-clojure-autoload)
+;(setq swank-clojure-jar-path "/usr/local/Cellar/clojure/1.1.0/clojure.jar")
+;(setq swank-clojure-extra-classpaths
+;      (list "/usr/local/Cellar/clojure-contrib/HEAD/clojure-contrib-1.2.0-SNAPSHOT.jar"))
+;(require 'clojure-mode)
 
 ; SLIME
-(require 'slime)
-(eval-after-load "slime" (slime-setup '(slime-repl)))
-(slime-setup)
+;(require 'slime)
+;(eval-after-load "slime" (slime-setup '(slime-repl)))
+;(slime-setup)
 
 ; Thrift
 (require 'thrift-mode)

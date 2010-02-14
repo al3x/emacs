@@ -1,6 +1,17 @@
 ; enable Common Lisp support
 (require 'cl)
 
+;;; This was installed by package-install.el.
+;;; This provides support for the package system and
+;;; interfacing with ELPA, the package archive.
+;;; Move this code earlier if you want to reference
+;;; packages in your .emacs.
+(when
+    (load
+     (expand-file-name "~/.emacs.d/elpa/package.el"))
+  (package-initialize))
+
+
 ; some modes need to call stuff on the exec-path
 (push "/usr/local/bin" exec-path)
 
@@ -35,13 +46,10 @@
 (vendor 'mo-git-blame)
 (vendor 'smart-tab)
 (vendor 'haskell-mode)
-(vendor 'clojure-mode)
-(vendor 'slime)
 
 ; load third-party modes that the vendor function can't handle
 (add-to-list 'load-path "~/.emacs.d/vendor/scala")
 (add-to-list 'load-path "~/.emacs.d/vendor/js2")
-(add-to-list 'load-path "~/.emacs.d/vendor/swank-clojure/src/emacs")
 
 ; load personal customizations (keybindings, colors, etc.)
 (mapcar 'load-directory '("~/.emacs.d/customizations"))
