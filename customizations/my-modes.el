@@ -67,6 +67,7 @@
 (setq swank-clojure-extra-classpaths
       (list "/usr/local/Cellar/clojure-contrib/HEAD/clojure-contrib-1.2.0-SNAPSHOT.jar"))
 (require 'clojure-mode)
+(require 'swank-clojure-autoload)
 
 ; SLIME
 (require 'slime)
