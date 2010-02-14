@@ -63,9 +63,9 @@
 )))
 
 ; swank-clojure
-(setq swank-clojure-jar-path "~/src/third_party/clojure/clojure/clojure-1.1.0-master-SNAPSHOT.jar")
+(setq swank-clojure-jar-path "/usr/local/Cellar/clojure/1.1.0/clojure.jar")
 (setq swank-clojure-extra-classpaths
-      (list "~/src/third_party/clojure/clojure-contrib/clojure-contrib.jar"))
+      (list "/usr/local/Cellar/clojure-contrib/HEAD/clojure-contrib-1.2.0-SNAPSHOT.jar"))
 (require 'clojure-mode)
 
 ; SLIME
