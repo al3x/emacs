@@ -24,9 +24,7 @@
 (color-theme-initialize)
 (setq color-theme-is-global t)
 (load-file "~/.emacs.d/vendor/twilight-emacs/color-theme-twilight.el")
-(load-file "~/.emacs.d/vendor/zen-and-art/zen-and-art.el")
 (color-theme-twilight)
-;(color-theme-zen-and-art)
 
 ; colors
 (custom-set-faces
