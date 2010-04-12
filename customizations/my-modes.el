@@ -94,3 +94,6 @@
 ;        (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
 ;     (add-hook hook (lambda () (paredit-mode 1)))))
 ;    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
+
+; Scheme
+(setq scheme-program-name "csi -:c")
