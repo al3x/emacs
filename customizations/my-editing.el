@@ -49,4 +49,4 @@
 
 ; smooth scrolling
 (require 'centered-cursor-mode)
-(global-centered-cursor-mode t)
+;(global-centered-cursor-mode t)
