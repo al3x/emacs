@@ -48,5 +48,12 @@
 (global-font-lock-mode t)
 
 ; smooth scrolling
-(require 'centered-cursor-mode)
+;(require 'centered-cursor-mode)
 ;(global-centered-cursor-mode t)
+
+; wrap lines in a tasteful way
+(global-visual-line-mode 1)
+
+; column width
+;(set-fill-column 100)
+;(setq default-fill-column 100)
