@@ -6,3 +6,4 @@
 tramp
 vendor/nav/.hg/
 *.elc
+.ensime
