@@ -20,8 +20,9 @@
 ; Scala
 (require 'scala-mode)
 (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
-(add-to-list 'load-path "~/.emacs.d/vendor/ensime/src/elisp/")
-;(require 'ensime)
+(add-to-list 'load-path "~/.emacs.d/vendor/ensime/elisp/")
+(require 'ensime)
+(add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 
 ; Textile
 (require 'textile-minor-mode)
