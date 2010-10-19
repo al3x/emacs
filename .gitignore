@@ -7,3 +7,4 @@ tramp
 vendor/nav/.hg/
 *.elc
 .ensime
+ac-comphist.dat
