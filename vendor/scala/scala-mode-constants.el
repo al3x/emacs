@@ -4,7 +4,6 @@
 ;; Copyright (C) 2009 Scala Dev Team at EPFL
 ;; Authors: See AUTHORS file
 ;; Keywords: scala languages oop
-;; $Id$
 
 ;;; License
 
@@ -146,16 +145,6 @@ reserved keywords when used alone.")
 (defconst scala-all-special-char-re
   (scala-regexp-opt-charset scala-all-special-chars)
   "Regular expression matching a single Scala special character")
-
-(defconst template-dcf-keywords-re
-  (regexp-opt '("trait" "class" "object") 'words))
-
-(defconst template-middle-keywords-re
-  (regexp-opt '("with" "extends") 'words))
-
-(defconst template-keywords-re
-  (concat
-   template-dcf-keywords-re "\\|"  template-middle-keywords-re))
 
 (defconst scala-keywords-re
   (regexp-opt '("abstract" "case" "class" "catch" "def" "do" "else" "extends"

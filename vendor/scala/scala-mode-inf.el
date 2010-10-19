@@ -4,7 +4,6 @@
 ;; Copyright (C) 2009 Scala Dev Team at EPFL
 ;; Authors: See AUTHORS file
 ;; Keywords: scala languages oop
-;; $Id$
 
 ;;; License
 
@@ -155,7 +154,7 @@ def foo =
     (beginning-of-line)
     (while (and (not (= (point) (point-min)))
                 (looking-at "\\s-*$"))
-      (forward-line -1))
+      (next-line -1))
     (end-of-line)
     (let ((end (point)))
       ;; now we need to find the start
@@ -166,7 +165,7 @@ def foo =
                                            "^\\s-+"   ; empty lines or lines that start with whitespace
                                            "^\\s-*}") ; lines that start with a '}'
                                          "\\|")))
-        (forward-line -1)
+        (next-line -1)
         (beginning-of-line))
       (message "region %s %s" (point) end)
       (scala-eval-region (point) end))))

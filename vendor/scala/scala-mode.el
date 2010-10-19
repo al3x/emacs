@@ -4,7 +4,6 @@
 ;; Copyright (C) 2009 Scala Dev Team at EPFL
 ;; Authors: See AUTHORS file
 ;; Keywords: scala languages oop
-;; $Id$
 
 ;;; License
 
@@ -73,7 +72,7 @@
   :group 'scala)
 
 (defconst scala-mode-version "0.5.99.5")
-(defconst scala-mode-svn-revision "$Revision$")
+(defconst scala-mode-svn-revision "$Revision: 21917 $")
 (defconst scala-bug-e-mail "scala@listes.epfl.ch")
 (defconst scala-web-url "http://scala-lang.org/")
 
