@@ -43,7 +43,7 @@ $toprint = <<< HTMLEOF
 
 <?php
 
-/* This inner php chunk is not useful (except for presentation of
+/* This inner php chunk is not very useful (except for presentation of
    MuMaMo chunk dividing capabilities and deficiences...), since php
    normally seems to run only one pass...
 

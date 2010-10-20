@@ -1,8 +1,6 @@
 ;;; html-move.el --- Move a file in a local file web site.
-
-;; Copyright (C) 2005 by Lennart Borgman
-
-;; Author:  Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Thu Jan 12 08:11:30 2006
 (defconst html-move:version "0.31") ;; Version:
 ;; Last-Updated: Tue Feb 20 23:59:43 2007 (3600 +0100)
@@ -55,7 +53,7 @@
 ;;; Code:
 
 (eval-when-compile (add-to-list 'load-path default-directory load-path))
-(eval-when-compile (require 'html-site))
+(eval-when-compile (require 'html-site nil t))
 (require 'url-parse)
 
 (defun html-move-make-new-url (old-url from-dir to-dir)

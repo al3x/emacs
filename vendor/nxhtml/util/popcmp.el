@@ -43,8 +43,10 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'ourcomments-util))
+(eval-when-compile (require 'cl))
+(eval-when-compile (require 'ourcomments-util nil t))
 
+;;;###autoload
 (defgroup popcmp nil
   "Customization group for popup completion."
   :tag "Completion Style \(popup etc)"
@@ -80,9 +82,6 @@
 
 
 
-
-
-;;(popcmp-set-completion-style 'company-mode)
 (defun popcmp-set-completion-style (val)
   "Internal use, set `popcmp-completion-style' to VAL."
   (assert (memq val '(popcmp-popup emacs-default company-mode anything)) t)
@@ -118,6 +117,7 @@
     (company-mode 1)
     (company-set-major-mode-backend)))
 
+;;;###autoload
 (defcustom popcmp-completion-style (cond
                                     ;;((and (fboundp 'global-company-mode) 'company-mode) 'company-mode)
                                     (t 'popcmp-popup))
@@ -150,7 +150,8 @@ completion is available."
          (popcmp-set-completion-style val))
   :group 'popcmp)
 
-(define-toggle popcmp-short-help-beside-alts t
+;;(define-toggle popcmp-short-help-beside-alts t
+(define-minor-mode popcmp-short-help-beside-alts
   "Show a short help text beside each alternative.
 If this is non-nil a short help text is shown beside each
 alternative for which such a help text is available.
@@ -158,9 +159,16 @@ alternative for which such a help text is available.
 This works in the same circumstances as
 `popcmp-completion-style'."
   :tag "Short help beside alternatives"
+  :global t
+  :init-value t
   :group 'popcmp)
 
-(define-toggle popcmp-group-alternatives t
+(defun popcmp-short-help-beside-alts-toggle ()
+  "Toggle `popcmp-short-help-beside-alts'."
+  (popcmp-short-help-beside-alts (if popcmp-short-help-beside-alts -1 1)))
+
+;;(define-toggle popcmp-group-alternatives t
+(define-minor-mode popcmp-group-alternatives
   "Do completion in two steps.
 For some completions the alternatives may have been grouped in
 sets. If this option is non-nil then you will first choose a set
@@ -169,7 +177,14 @@ and then an alternative within this set.
 This works in the same circumstances as
 `popcmp-completion-style'."
   :tag "Group alternatives"
+  :global t
+  :init-value t
   :group 'popcmp)
+
+(defun popcmp-group-alternatives-toggle ()
+  "Toggle `popcmp-group-alternatives-toggle'."
+  (interactive)
+  (popcmp-group-alternatives (if popcmp-group-alternatives -1 1)))
 
 (defun popcmp-getsets (alts available-sets)
   (let ((sets nil))
@@ -338,6 +353,8 @@ This works in the same circumstances as
         completion))))
 
 (defvar popcmp-in-buffer-allowed nil)
+
+;;;###autoload
 (defun popcmp-completing-read (prompt
                               table
                               &optional predicate require-match

@@ -46,41 +46,99 @@
 
 ;; Maybe there are something to get here?
 ;; http://github.com/cosmin/emacs-utils/tree/85cc1d2bd447cb9b2fc98e27b5f8780453e5b978/django-html-mode.el
+
+(defconst django-indenting-keywords
+  '("block" "comment" "else"
+    "filter" "for" "if" "ifchanged" "ifequal"
+    "ifnotequal" "spaceless" "with"))
+
+;; (append '(or) django-indenting-keywords)
 (defconst django-font-lock-keywords
   (list
-   (cons (rx
-          word-start
-          (or "as" "in"
-              (seq
-               (opt "end")
-               (or "autoescape" "block" "comment" "cycle" "debug" "else"
-                   "extends" "filter" "firstof" "for" "if" "ifchanged" "ifequal"
-                   "ifnotequal" "include" "load" "now" "regroup"
-                   "spaceless" "ssi" "templatetag" "url" "widthratio"
-                   "with")))
-          word-end)
+   (cons (rx-to-string
+          `(and
+            word-start
+            (or "as" "autoescape" "csrf_token" "cycle" "debug" "extends"
+                "firstof" "in" "include" "load" "now" "regroup" "ssi"
+                "templatetag" "url" "widthratio"
+                (seq
+                 (opt "end")
+                 ;; (or "autoescape" "block" "comment" "cycle" "debug" "else"
+                 ;;     "extends" "filter" "firstof" "for" "if" "ifchanged" "ifequal"
+                 ;;     "ifnotequal" "include" "load" "now" "regroup"
+                 ;;     "spaceless" "ssi" "templatetag" "url" "widthratio"
+                 ;;     "with")
+                 ,(append '(or) django-indenting-keywords)
+                 ))
+          word-end))
          font-lock-keyword-face)
    )
    "Minimal highlighting expressions for Django mode")
+
+(defcustom django-indent-width 2
+  "Indentation width for Django."
+  :type 'integer
+  :group 'django)
+
+(defun django-indent-line ()
+  "Indent current line as Django code.
+Indent like the examples on URL
+`http://docs.djangoproject.com/en/1.1/ref/templates/builtins/'."
+  (save-match-data
+    (let* ((indent-re (rx-to-string `(and word-start
+                                          ,(append '(or "else") django-indenting-keywords))))
+           (deindent-re (rx-to-string `(and word-start
+                                            (or "else"
+                                                (seq
+                                                 "end"
+                                                 ,(append '(or) django-indenting-keywords))))))
+           (here (point-marker))
+           (this-indentation (current-indentation))
+           (this-line-start (progn (beginning-of-line) (point)))
+           (prev-line-start (progn (skip-chars-backward " \t\n\r\f")
+                                   (beginning-of-line)
+                                   (when (< (point) this-line-start)
+                                     (point))))
+           (prev-indentation (if prev-line-start (current-indentation) 0))
+           (shift-in (if (and prev-line-start
+                              (re-search-forward indent-re (point-at-eol) t))
+                         django-indent-width 0))
+           (shift-out (progn
+                        (goto-char this-line-start)
+                        (if (re-search-forward deindent-re (point-at-eol) t)
+                            (- django-indent-width) 0)))
+           (new-indentation (max 0 (+ prev-indentation shift-in shift-out)))
+           )
+      (goto-char this-line-start)
+      (cond
+       ((> new-indentation this-indentation)
+        (skip-chars-forward " \t")
+        (indent-to new-indentation))
+       ((< new-indentation this-indentation)
+        (back-to-indentation)
+        (delete-region this-line-start (point))
+        (indent-to new-indentation)))
+      (goto-char here))))
 
 ;;;###autoload
 (define-derived-mode django-mode nil "Django"
   "Simple Django mode for use with mumamo.
 This mode only provides syntax highlighting."
+  (set (make-local-variable 'indent-line-function) 'django-indent-line)
   (setq font-lock-defaults '(django-font-lock-keywords)))
 
 ;;; Comments mode
-(defconst django-comment-font-lock-keywords
-  (list
-   (cons "\\(.*\\)" (list 1 font-lock-comment-face))
-   ))
+;; (defconst django-comment-font-lock-keywords
+;;   (list
+;;    (cons "\\(.*\\)" (list 1 font-lock-comment-face))
+;;    ))
 
-(defvar django-comment-font-lock-defaults
-  '(django-comment-font-lock-keywords t t))
+;; (defvar django-comment-font-lock-defaults
+;;   '(django-comment-font-lock-keywords t t))
 
-(define-derived-mode django-comment-mode nil "Django comment"
-  "For django comment blocks."
-  (set (make-local-variable 'font-lock-defaults) django-comment-font-lock-defaults))
+;; (define-derived-mode django-comment-mode nil "Django comment"
+;;   "For django comment blocks."
+;;   (set (make-local-variable 'font-lock-defaults) django-comment-font-lock-defaults))
 
 ;;; Variables mode
 

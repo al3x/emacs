@@ -3,7 +3,7 @@
 ;; Author: Lennar Borgman
 ;; Created: Tue Jan 16 2007
 (defconst mlinks:version "0.28") ;;Version:
-;; Last-Updated: 2009-05-01 Fri
+;; Last-Updated: 2010-01-05 Tue
 ;; Keywords:
 ;; Compatibility:
 ;;
@@ -66,15 +66,46 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'ourcomments-util))
+(eval-when-compile (require 'appmenu nil t))
+(eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'ourcomments-util nil t))
+
+(require 'rx)
 (require 'url-parse)
 (require 'url-expand)
-(eval-when-compile (require 'appmenu nil t))
 
-(defgroup mlinks-mode nil
+(defvar mlinks-point-hilighter-overlay nil)
+(make-variable-buffer-local 'mlinks-point-hilighter-overlay)
+(put 'mlinks-point-hilighter-overlay 'permanent-local t)
+
+;;;###autoload
+(defgroup mlinks nil
   "Customization group for `mlinks-mode'."
   :group 'nxhtml
   :group 'hypermedia)
+
+(defvar mlinks-link-face 'mlinks-link-face)
+(defface mlinks-link-face
+  '((t (:inherit highlight)))
+  "Face normally active links have on them."
+  :group 'mlinks)
+
+(defvar mlinks-hyperactive-link-face 'mlinks-hyperactive-link-face)
+(defface mlinks-hyperactive-link-face
+  '((t (:inherit isearch)))
+  "Face hyper active links have on them."
+  :group 'mlinks)
+
+(defvar mlinks-font-lock-face 'mlinks-font-lock-face)
+(defface mlinks-font-lock-face
+  '((t :inherit link))
+  "Default face for MLinks' links."
+  :group 'mlinks)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Mode function bindings
 
 ;;(customize-option mlinks-mode-functions)
 (defcustom mlinks-mode-functions
@@ -83,115 +114,96 @@
     (fundamental-mode
      ((goto mlinks-elisp-goto)
       (hili mlinks-elisp-hili)
-      hion
+      (hion t)
       )
      )
     (emacs-lisp-mode
      ((goto mlinks-elisp-goto)
       (hili mlinks-elisp-hili)
-      hion
+      (hion t)
       )
      )
     ;; *scractch*
     (lisp-interaction-mode
      ((goto mlinks-elisp-goto)
       (hili mlinks-elisp-hili)
-      hion
+      (hion t)
       )
      )
     (help-mode
      ((goto mlinks-elisp-goto)
       (hili mlinks-elisp-hili)
-      hion
+      (hion t)
       )
      )
     (Info-mode
      ((goto mlinks-elisp-goto)
       (hili mlinks-elisp-hili)
-      hion
+      (hion t)
       )
      )
-    (custom-mode
+    (Custom-mode
      ((goto mlinks-elisp-custom-goto)
       (hili mlinks-elisp-hili)
-      hion
-      (next-mark mlinks-custom-next-mark)
+      (hion t)
+      (fontify mlinks-custom-fontify)
       )
      )
     (text-mode
-     ((goto mlinks-html-style-goto)
-      (hili mlinks-html-style-hili)
-      hion
-      (next mlinks-html-forward-link)
-      (prev mlinks-html-backward-link)
+     ((goto mlinks-goto-plain-url)
+      (hion t)
+      (fontify mlinks-plain-urls-fontify)
       )
      )
     (nxhtml-mode
-     ((goto mlinks-html-style-goto)
-      (hili mlinks-html-style-hili)
-      hion
-      (next mlinks-html-forward-link)
-      (prev mlinks-html-backward-link)
+     ((hion t)
+      (fontify mlinks-html-fontify)
+      (goto mlinks-html-style-goto)
       )
      )
     (nxml-mode
-     ((goto mlinks-html-style-goto)
-      (hili mlinks-html-style-hili)
-      hion
-      (next mlinks-html-forward-link)
-      (prev mlinks-html-backward-link)
+     ((hion t)
+      (fontify mlinks-html-fontify)
+      (goto mlinks-html-style-goto)
       )
      )
     (sgml-mode
-     ((goto mlinks-html-style-goto)
-      (hili mlinks-html-style-hili)
-      hion
-      (next mlinks-html-forward-link)
-      (prev mlinks-html-backward-link)
+     ((hion t)
+      (fontify mlinks-html-fontify)
+      (goto mlinks-html-style-goto)
       )
      )
-;; This is an alias for sgml-mode:
-;;     (xml-mode
-;;      ((goto mlinks-html-style-goto)
-;;       (hili mlinks-html-style-hili)
-;;       hion
-;;       (next mlinks-html-forward-link)
-;;       (prev mlinks-html-backward-link)
-;;       )
-;;      )
     (html-mode
-     ((goto mlinks-html-style-goto)
-      (hili mlinks-html-style-hili)
-      hion
-      (next mlinks-html-forward-link)
-      (prev mlinks-html-backward-link)
+     ((hion t)
+      (fontify mlinks-html-fontify)
+      (goto mlinks-html-style-goto)
       )
      )
     )
   "Defines MLinks hyperlinks for major modes.
 "
-;; Each element in the list is a list with two elements
+  ;; Each element in the list is a list with two elements
 
-;;   \(MAJOR-MODE SETTINGS)
+  ;;   \(MAJOR-MODE SETTINGS)
 
-;; where MAJOR-MODE is the major mode for which the settings SETTINGS should be used.
-;; SETTINGS is an association list which can have the following element types
+  ;; where MAJOR-MODE is the major mode for which the settings SETTINGS should be used.
+  ;; SETTINGS is an association list which can have the following element types
 
-;;   \(hili HILIGHT-FUN)  ;; Mandatory
-;;   \(goto GOTO-FUN)     ;; Mandatory
-;;   \(hion HION-BOOL)    ;; Optional
-;;   \(next NEXT-FUN)     ;; Optional
-;;   \(prev PREV-FUN)     ;; Optional
+  ;;   \(hili HILIGHT-FUN)  ;; Mandatory
+  ;;   \(goto GOTO-FUN)     ;; Mandatory
+  ;;   \(hion HION-BOOL)    ;; Optional
+  ;;   \(next NEXT-FUN)     ;; Optional
+  ;;   \(prev PREV-FUN)     ;; Optional
 
-;; Where
-;; - HILIGHT-FUN is the function to hilight a link when point is
-;;   inside the link. This is done when Emacs is idle.
-;; - GOTO-FUN is the function to follow the link at point.
-;; - HION-BOOL is t or nil depending on if hilighting should be on
-;;   by default.
-;; - NEXT-FUN is the function to go to the next link.
-;; - PREV-FUN is the function to go to the previous link."
-;;   ;;:type '(repeat (alist :key-type symbol :value-type (alist :key-type symbol :value symbol)))
+  ;; Where
+  ;; - HILIGHT-FUN is the function to hilight a link when point is
+  ;;   inside the link. This is done when Emacs is idle.
+  ;; - GOTO-FUN is the function to follow the link at point.
+  ;; - HION-BOOL is t or nil depending on if hilighting should be on
+  ;;   by default.
+  ;; - NEXT-FUN is the function to go to the next link.
+  ;; - PREV-FUN is the function to go to the previous link."
+  ;;   ;;:type '(repeat (alist :key-type symbol :value-type (alist :key-type symbol :value symbol)))
   :type '(alist :key-type major-mode-function
                 :value-type (list
                              (set
@@ -202,27 +214,33 @@
                               (list :tag "Enable" (const :tag "Goto Next Link" next) function)
                               (list :tag "Enable" (const :tag "Goto Previous Link" prev) function)
                               )))
-  :group 'mlinks-mode)
+  :group 'mlinks)
 
-;; (defcustom temp
-;;   nil
-;;   "Defines MLinks hyperlinks for major modes.
-;; "
-;;   :type '(alist :key-type major-mode-function
-;;                 :value-type (list
-;;                              (set
-;;                               (const :tag "MLinks on"
-;;                                      :help-echo "Wether to enable MLinks in this major mode"
-;;                                      hion)
-;;                               (list :tag "Use" (const :tag "Hilighting" hili) function)
-;;                               (function :tag "Forward")
-;;                               )))
-;;   :group 'mlinks-mode)
 
-;; nxhtml-mode-hook
+(defun mlinks-get-mode-value (which)
+  (let* ((major major-mode)
+         (mode-rec (assoc major mlinks-mode-functions)))
+    (catch 'mode-rec
+      (while (and major
+                  (not mode-rec))
+        (setq major (get major 'derived-mode-parent))
+        (setq mode-rec (assoc major mlinks-mode-functions))
+        (when mode-rec (throw 'mode-rec nil))))
+    (when mode-rec
+      (let* ((mode (car mode-rec))
+             (funs-alist (cadr mode-rec))
+             (funs (assoc which funs-alist)))
+        (cdr funs)))))
 
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Minor modes
+
+;; (appmenu-dump-keymap mlinks-mode-map)
 (defvar mlinks-mode-map
-  (let ((m (make-sparse-keymap)))
+  (let ((m (make-sparse-keymap "mlinks")))
     (define-key m [(control ?c) ?\r ?\r]   'mlinks-goto)
     (define-key m [(control ?c) ?\r ?w]    'mlinks-goto-other-window)
     (define-key m [(control ?c) ?\r ?f]    'mlinks-goto-other-frame)
@@ -231,97 +249,162 @@
     (define-key m [(control ?c) ?\r S-tab] 'mlinks-backward-link)
     (define-key m [(control ?c) ?\r tab]   'mlinks-forward-link)
     (define-key m [(control ?c) ?\r ?h]    'mlinks-toggle-hilight)
+    (define-key m [(control ?c) ?\r ?c]    'mlinks-copy-link-text)
     m))
 
-(defun mlinks-want-marked-links ()
-  (or (mlinks-get-action 'next)
-      (mlinks-get-action 'next-mark)))
+;;;###autoload
+(define-minor-mode mlinks-mode
+  "Recognizes certain parts of a buffer as hyperlinks.
+The hyperlinks are created in different ways for different major
+modes with the help of the functions in the list
+`mlinks-mode-functions'.
 
-(defun mlinks-after-change-major-mode ()
-  (let ((hion (when (mlinks-get-boolean 'hion) t)))
-    (setq mlinks-hilight-this-buffer hion)
-    (when (mlinks-want-marked-links)
-      (message "mlinks-after-change-major-mode")
-      (mlinks-start-marking-links)
-      (add-hook 'after-change-functions 'mlinks-after-change t nil))
-    ))
+The hyperlinks can be hilighted when point is over them.  Use
+`mlinks-toggle-hilight' to toggle this feature for the current
+buffer.
+
+All keybindings in this mode are by default done under the prefi§x
+key
+
+  C-c RET
+
+which is supposed to be a kind of mnemonic for link (alluding to
+the RET key commonly used in web browser to follow a link).
+\(Unfortunately this breaks the rules in info node `Key Binding
+Conventions'.) Below are the key bindings defined by this mode:
+
+\\{mlinks-mode-map}
+
+For some major modes `mlinks-backward-link' and
+`mlinks-forward-link' will take you to the previous/next link.
+By default the link moved to will be active, see
+`mlinks-active-links'.
+
+"
+  nil
+  " L"
+  nil
+  :keymap mlinks-mode-map
+  :group 'mlinks
+  (if mlinks-mode
+      (progn
+        (mlinks-add-appmenu)
+        (mlinks-start-point-hilighter)
+        (mlinks-add-font-lock))
+    (mlinks-stop-point-hilighter)
+    (when mlinks-point-hilighter-overlay
+      (when (overlayp mlinks-point-hilighter-overlay)
+        (delete-overlay mlinks-point-hilighter-overlay))
+      (setq mlinks-point-hilighter-overlay nil))
+    (mlinks-remove-font-lock)))
+(put 'mlinks-mode 'permanent-local t)
+
+(defun mlinks-turn-on-in-buffer ()
+  (let ((hion (unless (and (boundp 'mumamo-set-major-running)
+                           mumamo-set-major-running)
+                (mlinks-get-mode-value 'hion))))
+    (when hion (mlinks-mode 1))))
+
+;;;###autoload
+(define-globalized-minor-mode mlinks-global-mode mlinks-mode
+  mlinks-turn-on-in-buffer
+  "Turn on `mlink-mode' in all buffer where it is specified.
+This is specified in `mlinks-mode-functions'."
+  :group 'mlinks)
+
+;; The problem with global minor modes:
+(when (and mlinks-global-mode
+           (not (boundp 'define-global-minor-mode-bug)))
+  (mlinks-global-mode 1))
+
+;;(define-toggle mlinks-active-links t
+(define-minor-mode mlinks-active-links
+  "Use quick movement keys on active links if non-nil.
+When moving to an mlink with `mlinks-forward-link' or
+`mlinks-backward-link' the link moved to will be in an active
+state.  This is marked with a new color \(the face `isearch').
+When the new color is shown the following keys are active
+
+\\{mlinks-hyperactive-point-hilighter-keymap}
+Any command cancels this state."
+  :global t
+  :init-value t
+  :group 'mlinks)
 
 
-(defvar mlinks-hilight-this-buffer nil)
-(make-variable-buffer-local 'mlinks-hilight-this-buffer)
 
-(defvar mlinks-hilight-point-ovl nil)
-(make-variable-buffer-local 'mlinks-hilight-point-ovl)
+(defun mlinks-link-text-prop-range (pos)
+  (let* ((link-here (get-text-property pos 'mlinks-link))
+         (beg (when link-here (previous-single-char-property-change (+ pos 1) 'mlinks-link)))
+         (end (when link-here (next-single-char-property-change (- pos 0) 'mlinks-link))))
+    (when (and beg end)
+      (cons beg end))))
 
-(defvar mlinks-hilighter-timer nil)
-(make-variable-buffer-local 'mlinks-hilighter-timer)
-(put 'mlinks-hilighter-timer 'permanent-local t)
-
-(defun mlinks-toggle-hilight ()
-  "Toggle hilighting of links in current buffer."
-  (interactive)
-  (setq mlinks-hilight-this-buffer (not mlinks-hilight-this-buffer))
-  (if mlinks-hilight-this-buffer
-      (message "MLinks hilighter was turned on in buffer")
-    (message "MLinks hilighter was turned off in buffer")))
-
-(defun mlinks-stop-hilighter ()
-  ;;(message "stop-hilighter, mlinks-hilighter-timer=%s, timerp=%s" mlinks-hilighter-timer (timerp mlinks-hilighter-timer))
-  (when (and mlinks-hilighter-timer
-             (timerp mlinks-hilighter-timer))
-    (cancel-timer mlinks-hilighter-timer))
-  (setq mlinks-hilighter-timer nil)
-  (when mlinks-hilight-point-ovl
-    (delete-overlay mlinks-hilight-point-ovl)))
-
-(defun mlinks-start-hilighter ()
-  (mlinks-stop-hilighter)
-  ;;(message "start-hilighter")
-  (setq mlinks-hilighter-timer (run-with-idle-timer 0 t 'mlinks-hilighter (current-buffer)))
-  )
-
-(defun mlinks-make-point-ovl (bounds)
-  (unless mlinks-hilight-point-ovl
-    (setq mlinks-hilight-point-ovl
-          (make-overlay (car bounds) (cdr bounds)))
-    (overlay-put mlinks-hilight-point-ovl 'priority 100)
-    (overlay-put mlinks-hilight-point-ovl 'mouse-face 'highlight)
-    (mlinks-deactivate-hilight)
-    ;;(overlay-put mlinks-hilight-point-ovl 'face 'highlight)
-    ;;(overlay-put mlinks-hilight-point-ovl 'mouse-face 'highlight)
-    ))
+(defun mlinks-link-range (pos)
+  (or (mlinks-link-text-prop-range pos)
+      (let ((funs-- (mlinks-get-mode-value 'hili)))
+        (when funs--
+          (save-match-data
+            (run-hook-with-args-until-success 'funs--))))))
 
 (defun mlinks-link-at-point ()
-  (let* ((funs (mlinks-get-action 'hili))
-         bounds)
-    (when funs
-      (setq bounds (run-hook-with-args-until-success 'funs)))
-    (when bounds
-      (buffer-substring-no-properties (car bounds) (cdr bounds)))))
+  "Get link at point."
+  (mlinks-point-hilighter-1)
+  (when (and mlinks-point-hilighter-overlay
+             (overlay-buffer mlinks-point-hilighter-overlay))
+    (let* ((ovl mlinks-point-hilighter-overlay)
+           (beg (overlay-start ovl))
+           (end (overlay-end ovl)))
+      (buffer-substring-no-properties beg end))))
 
-(defun mlinks-hilighter (buffer)
-  ;;(message "mlinks-hilighter, buffer=%s, p=%s, live-p=%s" buffer (bufferp buffer) (buffer-live-p buffer))
-  (save-match-data ;; runs in timer
-    (if (or (not (bufferp buffer))
-            (not (buffer-live-p buffer)))
-        ;;(mlinks-stop-hilighter)
-        ;;(cancel-timer timer-event-last)
-        (cancel-timer mlinks-mark-links-timer)
-      (with-current-buffer buffer
-        (when mlinks-mode ;t ;mlinks-hilight-this-buffer
-          (let* ((funs-- (mlinks-get-action 'hili))
-                 bounds--)
-            (when funs--
-              (setq bounds-- (run-hook-with-args-until-success 'funs--)))
-            (if bounds--
-                (if mlinks-hilight-point-ovl
-                    (move-overlay mlinks-hilight-point-ovl (car bounds--) (cdr bounds--))
-                  (mlinks-make-point-ovl bounds--))
-              (when mlinks-hilight-point-ovl
-                (delete-overlay mlinks-hilight-point-ovl)))))))))
 
-(defvar mlinks-active-hilight-keymap
-  (let ((m (make-sparse-keymap)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; At point highligher
+
+(defvar mlinks-point-hilighter-timer nil)
+
+(defun mlinks-stop-point-hilighter ()
+  (when (timerp mlinks-point-hilighter-timer)
+    (cancel-timer mlinks-point-hilighter-timer)
+    (setq mlinks-point-hilighter-timer nil)))
+
+(defun mlinks-start-point-hilighter ()
+  (mlinks-stop-point-hilighter)
+  (setq mlinks-point-hilighter-timer
+        (run-with-idle-timer 0.1 t 'mlinks-point-hilighter)))
+
+(defvar mlinks-link-overlay-priority 100)
+
+(defun mlinks-make-point-hilighter-overlay (bounds)
+  (unless mlinks-point-hilighter-overlay
+    (setq mlinks-point-hilighter-overlay
+          (make-overlay (car bounds) (cdr bounds)))
+    (overlay-put mlinks-point-hilighter-overlay 'priority mlinks-link-overlay-priority)
+    (overlay-put mlinks-point-hilighter-overlay 'mouse-face 'highlight)
+    (mlinks-set-normal-point-hilight)
+    ))
+
+(defun mlinks-point-hilighter ()
+  "Mark link at point if any.
+This moves the hilight point overlay to point or deletes it."
+  ;; This runs in a timer, protect it.
+  (condition-case err
+      (let ((inhibit-point-motion-hooks t))
+        (mlinks-point-hilighter-1))
+    (error "mlinks-point-hilighter error: %s" (error-message-string err))))
+
+(defun mlinks-point-hilighter-1 ()
+  (when mlinks-mode
+    (let ((bounds-- (mlinks-link-range (point))))
+      (if bounds--
+          (if mlinks-point-hilighter-overlay
+              (move-overlay mlinks-point-hilighter-overlay (car bounds--) (cdr bounds--))
+            (mlinks-make-point-hilighter-overlay bounds--))
+        (when mlinks-point-hilighter-overlay
+          (delete-overlay mlinks-point-hilighter-overlay))))))
+
+(defvar mlinks-hyperactive-point-hilighter-keymap
+  (let ((m (make-sparse-keymap "mlinks")))
     (define-key m [S-tab]   'mlinks-backward-link)
     (define-key m [tab]     'mlinks-forward-link)
     (define-key m "\t"      'mlinks-forward-link)
@@ -329,68 +412,96 @@
     (define-key m [?w]      'mlinks-goto-other-window)
     (define-key m [?f]      'mlinks-goto-other-frame)
     (define-key m [mouse-1] 'mlinks-goto)
+    (set-keymap-parent m mlinks-mode-map)
     m))
 
-(defvar mlinks-inactive-hilight-keymap
-  (let ((m (make-sparse-keymap)))
+(defvar mlinks-point-hilighter-keymap
+  (let ((m (make-sparse-keymap "mlinks")))
     (define-key m [mouse-1] 'mlinks-goto)
+    (set-keymap-parent m mlinks-mode-map)
     m))
 
-(defun mlinks-pre-command ()
-  (unless (let ((map (overlay-get mlinks-hilight-point-ovl 'keymap)))
-            (where-is-internal this-command
-                               (list
-                                map)))
-    (mlinks-deactivate-hilight)
-    (unless mlinks-hilighter-timer
-      (delete-overlay mlinks-hilight-point-ovl))))
-(put 'mlinks-pre-command 'permanent-local t)
+(defun mlinks-point-hilighter-pre-command ()
+  (condition-case err
+      (unless (let ((map (overlay-get mlinks-point-hilighter-overlay 'keymap)))
+                (where-is-internal this-command
+                                   (list
+                                    map)))
+        (mlinks-set-normal-point-hilight)
+        (unless mlinks-point-hilighter-timer
+          (delete-overlay mlinks-point-hilighter-overlay)))
+    (error (message "mlinks-point-hilighter-pre-command: %s" err))))
+(put 'mlinks-point-hilighter-pre-command 'permanent-local t)
 
-(defun mlinks-activate-hilight ()
-  (add-hook 'pre-command-hook 'mlinks-pre-command nil t)
-  (mlinks-hilighter (current-buffer))
-  (overlay-put mlinks-hilight-point-ovl 'face 'isearch)
-  (overlay-put mlinks-hilight-point-ovl 'keymap mlinks-active-hilight-keymap))
+(defun mlinks-set-hyperactive-point-hilight ()
+  "Make link hyper active, ie add some special key binding.
+Used after jumping specifically to a link. The idea is that the
+user may want to easily jump between links in this state."
+  (add-hook 'pre-command-hook 'mlinks-point-hilighter-pre-command nil t)
+  (mlinks-point-hilighter)
+  (overlay-put mlinks-point-hilighter-overlay 'face mlinks-hyperactive-link-face)
+  (overlay-put mlinks-point-hilighter-overlay 'keymap mlinks-hyperactive-point-hilighter-keymap))
 
-(defun mlinks-deactivate-hilight ()
-  (remove-hook 'pre-command-hook 'mlinks-pre-command t)
-  (mlinks-hilighter (current-buffer))
-  (overlay-put mlinks-hilight-point-ovl 'face 'highlight)
-  (overlay-put mlinks-hilight-point-ovl 'keymap mlinks-inactive-hilight-keymap))
+(defun mlinks-set-normal-point-hilight ()
+  "Make link normally active as if you happened to be on it."
+  (remove-hook 'pre-command-hook 'mlinks-point-hilighter-pre-command t)
+  (mlinks-point-hilighter)
+  (overlay-put mlinks-point-hilighter-overlay 'face mlinks-link-face)
+  (overlay-put mlinks-point-hilighter-overlay 'keymap mlinks-point-hilighter-keymap))
 
-(defun mlinks-someactivate-hilight ()
+(defun mlinks-set-point-hilight-after-jump-to ()
+  "Set hilight style after jump to link."
   (if mlinks-active-links
-      (mlinks-activate-hilight)
-    (mlinks-deactivate-hilight)))
+      (mlinks-set-hyperactive-point-hilight)
+    (mlinks-set-normal-point-hilight)))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Jumping around
+
+(defvar mlinks-places nil)
+(make-variable-buffer-local 'mlinks-placesn)
+(put 'mlinks-places 'permanent-local t)
+
+(defvar mlinks-places-n 0)
+(make-variable-buffer-local 'mlinks-places-n)
+(put 'mlinks-places-n 'permanent-local t)
+
+(defun mlinks-has-links ()
+  (or (mlinks-get-mode-value 'fontify)
+      (when (and (boundp 'mumamo-multi-major-mode) mumamo-multi-major-mode)
+        ;; Fix-me: just assume multi major has it... Need a list of
+        ;; major modes. There is no way to get such a list for the
+        ;; multi major mode (since you can't know what the chunk
+        ;; functions will return.  However you can get a list of
+        ;; current chunks major mode.
+        t
+        )))
 
 (defun mlinks-backward-link ()
-  "Find previous `mlinks-mode' link in buffer."
+  "Go to previous `mlinks-mode' link in buffer."
   (interactive)
-  (let ((funs (mlinks-get-action 'prev)))
-    (if (not funs)
-        (message "There is no way to go to previous link for this major mode")
-      (let (
-            ;;(res (run-hook-with-args-until-success 'funs))
-            (res (funcall (car funs)))
-            )
-        (if res
-            (progn
-              (goto-char (car res))
-              (mlinks-someactivate-hilight))
-          (message "No previous link found"))))))
+  (if (not (mlinks-has-links))
+      (message "There is no way to go to previous link for this major mode")
+    (let ((res (mlinks-prev-link)))
+      (if res
+          (progn
+            (goto-char res)
+            (mlinks-set-point-hilight-after-jump-to))
+        (message "No previous link found")))))
 
 (defun mlinks-forward-link ()
-  "Find next `mlinks-mode' link in buffer."
+  "Go to next `mlinks-mode' link in buffer."
   (interactive)
-  (let ((funs (mlinks-get-action 'next)))
-    (if (not funs)
-        (message "There is no way to go to next link for this major mode")
-      (let ((res (funcall (car funs))))
-        (if res
-            (progn
-              (goto-char (car res))
-              (mlinks-someactivate-hilight))
-          (message "No next link found"))))))
+  (if (not (mlinks-has-links))
+      (message "There is no way to go to next link for this major mode")
+    (let ((res (mlinks-next-link)))
+      (if res
+          (progn
+            (goto-char res)
+            (mlinks-set-point-hilight-after-jump-to))
+        (message "No next link found")))))
 
 
 (defun mlinks-goto ()
@@ -416,13 +527,13 @@ Uses `switch-to-buffer-other-frame'."
 
 (defun mlinks-goto-1(where)
   (push-mark)
-  (let* ((funs (mlinks-get-action 'goto))
+  (let* ((funs (mlinks-get-mode-value 'goto))
          (old (point-marker))
          (mlinks-temp-buffer-where where)
          (res (run-hook-with-args-until-success 'funs)))
     (if (not res)
         (progn
-          (message "No MLink link here")
+          (message "Don't know how to follow this MLink link")
           nil)
       (unless (= old (point-marker))
         (let* ((prev (car mlinks-places)))
@@ -432,21 +543,6 @@ Uses `switch-to-buffer-other-frame'."
                     (/= old prev))
             (setq mlinks-places (cons old mlinks-places))
             (setq mlinks-places-n (length mlinks-places))))))))
-
-(defun mlinks-get-boolean (which)
-  (let ((mode-rec (assoc major-mode mlinks-mode-functions)))
-    (when mode-rec
-      (let* ((mode (car mode-rec))
-             (funs-alist (cadr mode-rec)))
-        (member which funs-alist)))))
-
-(defun mlinks-get-action (which)
-  (let ((mode-rec (assoc major-mode mlinks-mode-functions)))
-    (when mode-rec
-      (let* ((mode (car mode-rec))
-             (funs-alist (cadr mode-rec))
-             (funs (assoc which funs-alist)))
-        (cdr funs)))))
 
 
 (defun mlinks-prev-saved-position ()
@@ -487,9 +583,6 @@ Uses `switch-to-buffer-other-frame'."
         (mlinks-switch-to-buffer (marker-buffer place))
         (goto-char place)))))
 
-(defvar mlinks-places-n 0)
-(defvar mlinks-places nil)
-
 (defvar mlinks-temp-buffer-where nil)
 (defun mlinks-switch-to-buffer (buffer)
   (mlinks-switch-to-buffer-1 buffer mlinks-temp-buffer-where))
@@ -510,329 +603,183 @@ Uses `switch-to-buffer-other-frame'."
   (customize-option var)
   )
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; AppMenu support
+
 (defun mlinks-appmenu ()
-  (let ((link-val (mlinks-link-at-point))
-        (map (make-sparse-keymap "mlinks-appmenu")))
-    (when (mlinks-get-action 'prev)
-      (define-key map [mlinks-next-link]
-        (list 'menu-item "Next Link" 'mlinks-forward-link)))
-    (when (mlinks-get-action 'next)
-      (define-key map [mlinks-prev-link]
-        (list 'menu-item "Previous Link" 'mlinks-backward-link)))
-    (when link-val
-      (let* ((possible (when (member major-mode '(html-mode nxhtml-mode nxml-mode sqml-mode text-mode))
-                         (mlinks-html-possible-href-actions link-val)))
-             (mailto (assoc 'mailto possible))
-             (view-web (assoc 'view-web possible))
-             (view-web-base (assoc 'view-web-base possible))
-             (edit (assoc 'edit possible))
-             (file (nth 1 edit))
-             (anchor (nth 2 edit))
-             (choices)
-             (answer)
-             )
-        (define-key map [mlinks-href-sep] (list 'menu-item "--"))
-        (when view-web
-          (define-key map [mlinks-href-view-web]
-            (list 'menu-item "Browse Link Web Url"
-                  `(lambda () (interactive)
-                     (browse-url ,link-val)))))
-        (when view-web-base
-          (define-key map [mlinks-href-view-web-based]
-            (list 'menu-item "Browse Link Web Url (base URL found)"
-                  `(lambda () (interactive)
-                     (browse-url (cdr ,view-web-base))))))
-        (when mailto
-          (define-key map [mlinks-href-mail]
-            (list 'menu-item (concat "&Mail to " (substring link-val 7))
-                  `(lambda () (interactive)
-                     (mlinks-html-mail-to ,link-val)))))
-        (when edit
-          (when (and (file-exists-p file)
-                     (not anchor)
-                     (assoc 'upload possible))
-            (let ((abs-file (expand-file-name file)))
-              (define-key map [mlinks-href-upload]
-                (list 'menu-item "Upload Linked File"
-                      `(lambda () (interactive)
-                         (html-upl-upload-file ,abs-file))))))
-          (when (and (file-exists-p file)
-                     (not anchor)
-                     (assoc 'edit-gimp possible))
-            (let ((abs-file (expand-file-name file)))
-              (define-key map [mlinks-href-edit-gimp]
-                (list 'menu-item "Edit Linked File with GIMP"
-                      `(lambda () (interactive)
-                         (gimp-edit-file ,abs-file))))))
-          (when (and (file-exists-p file)
-                     (assoc 'view-local possible))
-            (let ((url (concat "file:///" (expand-file-name file))))
-              (when anchor
-                (let ((url-anchor (concat url "#" anchor)))
-                  (define-key map [mlinks-href-view-file-at]
-                    (list 'menu-item (concat "Browse Linked File URL at #" anchor)
-                          `(lambda () (interactive)
-                             (browse-url ,url-anchor))))))
-              (define-key map [mlinks-href-view-file]
-                (list 'menu-item "&Browse Linked File URL"
-                      `(lambda () (interactive)
-                         (browse-url ,url))))))
-          (define-key map [mlinks-href-sep-2] (list 'menu-item "--"))
-          (unless (equal file (buffer-file-name))
-            (define-key map [mlinks-href-edit]
-              (list 'menu-item "&Open Linked File"
-                    `(lambda () (interactive) (mlinks-goto))))
-            (define-key map [mlinks-href-edit-window]
-              (list 'menu-item "&Open Linked File in Other Window"
-                    `(lambda () (interactive) (mlinks-goto-other-window))))
-            (define-key map [mlinks-href-edit-frame]
-              (list 'menu-item "&Open Linked File in New Frame"
-                    `(lambda () (interactive) (mlinks-goto-other-frame))))
-            )
-          (when (and (file-exists-p file) anchor)
-            (define-key map [mlinks-href-edit-at]
-              (list 'menu-item (concat "Open Linked File &at #" anchor)
+  (when mlinks-mode
+    ;; Fix-me: reverse the list
+    (let ((link-val (mlinks-link-at-point))
+          (map (make-sparse-keymap "mlinks"))
+          (num 2))
+      (when (mlinks-get-mode-value 'prev)
+        (define-key map [mlinks-next-link]
+          (list 'menu-item "Next Link" 'mlinks-forward-link)))
+      (when (mlinks-get-mode-value 'next)
+        (define-key map [mlinks-prev-link]
+          (list 'menu-item "Previous Link" 'mlinks-backward-link)))
+      (when link-val
+        (let* ((possible (when (member major-mode '(html-mode nxhtml-mode nxml-mode sqml-mode text-mode))
+                           (mlinks-html-possible-href-actions link-val)))
+               (mailto (assoc 'mailto possible))
+               (view-web (assoc 'view-web possible))
+               (view-web-base (assoc 'view-web-base possible))
+               (edit (assoc 'edit possible))
+               (file (nth 1 edit))
+               (anchor (nth 2 edit))
+               (choices)
+               (answer)
+               )
+          (when (> (length map) num)
+            (define-key map [mlinks-href-sep] (list 'menu-item "--")))
+          (setq num (length map))
+          (when view-web
+            (define-key map [mlinks-href-view-web]
+              (list 'menu-item "Browse Link Web Url"
                     `(lambda () (interactive)
-                       (mlinks-goto)))))
-          )
-        (define-key map [mlinks-href-sep-1] (list 'menu-item "--"))
-        (define-key map [mlinks-href-copy-link]
-          (list 'menu-item "&Copy Link"
-                `(lambda () (interactive)
-                   (x-select-text ,link-val))))))
-    (when (> (length map) 2)
-      map)))
+                       (browse-url ,link-val)))))
+          (when view-web-base
+            (define-key map [mlinks-href-view-web-based]
+              (list 'menu-item "Browse Link Web Url (base URL found)"
+                    `(lambda () (interactive)
+                       (browse-url (cdr ,view-web-base))))))
+          (when mailto
+            (define-key map [mlinks-href-mail]
+              (list 'menu-item (concat "&Mail to " (substring link-val 7))
+                    `(lambda () (interactive)
+                       (mlinks-html-mail-to ,link-val)))))
+          (when edit
+            (when (and (file-exists-p file)
+                       (not anchor)
+                       (assoc 'upload possible))
+              (let ((abs-file (expand-file-name file)))
+                (define-key map [mlinks-href-upload]
+                  (list 'menu-item "Upload Linked File"
+                        `(lambda () (interactive)
+                           (html-upl-upload-file ,abs-file))))))
+            (when (and (file-exists-p file)
+                       (not anchor)
+                       (assoc 'edit-gimp possible))
+              (let ((abs-file (expand-file-name file)))
+                (define-key map [mlinks-href-edit-gimp]
+                  (list 'menu-item "Edit Linked File with GIMP"
+                        `(lambda () (interactive)
+                           (gimpedit-edit-file ,abs-file))))))
+            (when (and (file-exists-p file)
+                       (assoc 'view-local possible))
+              (let ((url (concat "file:///" (expand-file-name file))))
+                (when anchor
+                  (let ((url-anchor (concat url "#" anchor)))
+                    (define-key map [mlinks-href-view-file-at]
+                      (list 'menu-item (concat "Browse Linked File URL at #" anchor)
+                            `(lambda () (interactive)
+                               (browse-url ,url-anchor))))))
+                (define-key map [mlinks-href-view-file]
+                  (list 'menu-item "&Browse Linked File URL"
+                        `(lambda () (interactive)
+                           (browse-url ,url))))))
+            (when (> (length map) num)
+              (define-key map [mlinks-href-sep-2] (list 'menu-item "--")))
+            (setq num (length map))
+            (unless (equal file (buffer-file-name))
+              (define-key map [mlinks-href-edit]
+                (list 'menu-item "&Open Linked File"
+                      `(lambda () (interactive) (mlinks-goto))))
+              (define-key map [mlinks-href-edit-window]
+                (list 'menu-item "&Open Linked File in Other Window"
+                      `(lambda () (interactive) (mlinks-goto-other-window))))
+              (define-key map [mlinks-href-edit-frame]
+                (list 'menu-item "&Open Linked File in New Frame"
+                      `(lambda () (interactive) (mlinks-goto-other-frame))))
+              )
+            (when (and (file-exists-p file) anchor)
+              (define-key map [mlinks-href-edit-at]
+                (list 'menu-item (concat "Open Linked File &at #" anchor)
+                      `(lambda () (interactive)
+                         (mlinks-goto)))))
+            )
+          (when (> (length map) num)
+            (define-key map [mlinks-href-sep-1] (list 'menu-item "--")))
+          (setq num (length map))
+          (when link-val
+            (define-key map [mlinks-href-copy-link]
+              (list 'menu-item "&Copy Link Text"
+                    'mlinks-copy-link-text)))))
+      (when (> (length map) 2)
+        map))))
 
 (defun mlinks-add-appmenu ()
   "Add entries for MLinks to AppMenu."
   (when (featurep 'appmenu)
-    ;;(add-to-list 'appmenu-alist (cons 'mlinks-mode (cons "Current MLink" 'mlinks-appmenu)))
-    (appmenu-add 'mlinks 100 'mlinks-mode "Current MLink" 'mlinks-appmenu)
-    ))
+    (appmenu-add 'mlinks 100 'mlinks-mode "Current MLink" 'mlinks-appmenu)))
 
-(defun mlinks-remove-overlays (&optional min max)
-  (save-excursion
-    (save-restriction
-      (widen)
-      (unless min (setq min (point-min)))
-      (unless max (setq max (point-max)))
-      (dolist (o (overlays-in min max))
-        (when (overlay-get o 'mlinks)
-          (when (< (overlay-start o) min)
-            (setq min (overlay-start o)))
-          (when (> (overlay-end o) max)
-            (setq max (overlay-end o)))
-          (delete-overlay o)))))
-  (cons min max))
+(defun mlinks-copy-link-text ()
+  "Copy text of `mlinks-mode' link at point to clipboard."
+  (interactive)
+  (mlinks-point-hilighter)
+  (let ((ovl mlinks-point-hilighter-overlay))
+    (if (and ovl
+             (overlayp ovl)
+             (overlay-buffer ovl)
+             (eq (current-buffer)
+                 (overlay-buffer ovl))
+             (<= (overlay-start ovl)
+                 (point))
+             (>= (overlay-end ovl)
+                 (point)))
+        (let* ((beg (overlay-start ovl))
+               (end (overlay-end ovl))
+               (str (buffer-substring beg end)))
+          (copy-region-as-kill beg end)
+          (message "Copied %d chars to clipboard" (length str)))
+      (message "No link here to copy"))))
 
-;;;###autoload
-(define-minor-mode mlinks-mode
-  "Recognizes certain parts of a buffer as hyperlinks.
-The hyperlinks are created in different ways for different major
-modes with the help of the functions in the list
-`mlinks-mode-functions'.
 
-The hyperlinks can be hilighted when point is over them.  Use
-`mlinks-toggle-hilight' to toggle this feature for the current
-buffer.
 
-All keybindings in this mode are by default done under the prefi§x
-key
-
-  C-c RET
-
-which is supposed to be a kind of mnemonic for link (alluding to
-the RET key commonly used in web browser to follow a link).
-\(Unfortunately this breaks the rules in info node `Key Binding
-Conventions'.) Below are the key bindings defined by this mode:
-
-\\{mlinks-mode-map}
-
-For some major modes `mlinks-backward-link' and
-`mlinks-forward-link' will take you to the previous/next link.
-By default the link moved to will be active, see
-`mlinks-active-links'.
-
-"
-  nil
-  " L"
-  nil
-  :keymap mlinks-mode-map
-  :group 'mlinks
-  (if mlinks-mode
-      (progn
-        ;;(message "mlinks-mode t")
-        (mlinks-add-appmenu)
-        (mlinks-start-hilighter)
-        ;;(message "define-minor mlinks")
-        (mlinks-start-marking-links)
-        ;;(add-hook 'after-change-major-mode-hook 'mlinks-after-change-major-mode)
-        ;;(mlinks-add-overlays)
-        )
-    ;;(message "mlinks-mode nil")
-    (mlinks-stop-hilighter)
-    (mlinks-stop-marking-links)
-    ;;(remove-hook 'after-change-major-mode-hook 'mlinks-after-change-major-mode)
-    (remove-hook 'after-change-functions 'mlinks-after-change t)
-    (mlinks-remove-overlays)))
-(put 'mlinks-mode 'permanent-local t)
-
-(defun mlinks-turn-on-in-buffer ()
-  (let ((hion (unless (and (boundp 'mumamo-set-major-running)
-                           mumamo-set-major-running)
-                (when (mlinks-get-boolean 'hion) t))))
-    ;;(message "mtoinb: buffer=%s, hion=%s, mlinks-mode=%s" (current-buffer) hion mlinks-mode)
-    (when hion
-      (mlinks-mode 1)
-      )))
-
-(define-globalized-minor-mode mlinks-global-mode mlinks-mode
-  mlinks-turn-on-in-buffer
-  :group 'mlinks-mode)
-;; The problem with global minor modes:
-(when (and mlinks-global-mode
-           (not (boundp 'define-global-minor-mode-bug)))
-  (mlinks-global-mode 1))
-
-(define-toggle mlinks-active-links t
-  "Use quick movement keys on active links if non-nil.
-When moving to an mlink with `mlinks-forward-link' or
-`mlinks-backward-link' the link moved to will be in an active
-state.  This is marked with a new color \(the face `isearch').
-When the new color is shown the following keys are active
-
-\\{mlinks-active-hilight-keymap}
-Any command cancels this state."
-  ;;:tag "mlinks quick keys"
-  :group 'mlinks)
-
-(defface mlinks-link
-  ;;'((t :underline t :foreground "blue1"))
-  '((t :inherit link))
-  "Default face for MLinks' links."
-  :group 'mlinks)
-
-;; (defface mlinks-nomarking
-;;   '(())
-;;   "Nomarking face for MLinks' links."
-;;   :group 'mlinks)
-
-(defcustom mlinks-link 'mlinks-link
-  "Marking of MLinks links."
-  :type '(choice (const :tag "No marking at all" nil) face)
-  :group 'mlinks)
-
-(defun mlinks-mark-link (lnk)
-  (let* ((start (car lnk))
-         (end   (cdr lnk))
-         ovl)
-    (dolist (o (overlays-at (point)))
-      (when (overlay-get o 'mlink)
-        (if ovl
-            (delete-overlay o)
-        (setq ovl o))))
-    (if ovl
-        (unless (and (= start (overlay-start ovl))
-                     (= end   (overlay-end   ovl)))
-          (move-overlay ovl start end))
-      (setq ovl (make-overlay start end)))
-    (when mlinks-link
-      (overlay-put ovl 'face mlinks-link))
-    (overlay-put ovl 'mouse-face 'highlight)
-    (overlay-put ovl 'keymap mlinks-inactive-hilight-keymap)
-    (overlay-put ovl 'mlinks t)))
-
-(defvar mlinks-mark-links-timer nil)
-(make-variable-buffer-local 'mlinks-mark-links-timer)
-(put 'mlinks-mark-links-timer 'permanent-local t)
-
-;; (defun mlinks-mark-next-link (buffer)
-;;   (when (buffer-live-p buffer)
-;;     (with-current-buffer buffer
-;;       (when (timerp mlinks-mark-links-timer)
-;;         (cancel-timer mlinks-mark-links-timer))
-;;       (let ((funs (mlinks-get-action 'next))
-;;             res
-;;             start-at)
-;;         (unless funs
-;;           (setq funs (mlinks-get-action 'next-mark)))
-;;         ;; When using mumamo-mode we can not be sure that funs is
-;;         ;; non-nil here:
-;;         (when funs
-;;           (save-excursion
-;;             (setq start-at
-;;                   (if mlinks-link-update-pos-min
-;;                       mlinks-link-update-pos-min
-;;                     (point-min)))
-;;             (goto-char start-at)
-;;             (save-match-data
-;;               (setq res (funcall (car funs)))))
-;;           ;; Fix-me: old links
-;;           (when res
-;;             (let ((ovl-chg start-at)
-;;                   (end-at (cdr res)))
-;;               (while (< ovl-chg end-at)
-;;                 (dolist (o (overlays-at ovl-chg))
-;;                   (when (overlay-get o 'mlink)
-;;                     (if (= (overlay-start o) (car res))
-;;                         (delete-overlay o)
-;;                       (move-overlay o (car res) (cdr res)))))
-;;                 (setq ovl-chg (next-overlay-change (+ ovl-chg)))))
-;;             (setq mlinks-link-update-pos-min (cdr res))
-;;             (mlinks-mark-link res)
-;;             (when (or (not mlinks-link-update-pos-max)
-;;                       (< (point) mlinks-link-update-pos-max))
-;;               (setq mlinks-mark-links-timer (run-with-idle-timer 0 nil 'mlinks-mark-next-link buffer))
-;;               )))))))
-
-(defvar mlinks-link-update-pos-min nil)
-(make-variable-buffer-local 'mlinks-link-update-pos-min)
-(put 'mlinks-link-update-pos-min 'permanent-local t)
-
-(defvar mlinks-link-update-pos-max nil)
-(make-variable-buffer-local 'mlinks-link-update-pos-max)
-(put 'mlinks-link-update-pos-max 'permanent-local t)
-
-(defun mlinks-stop-marking-links ()
-  (mlink-font-lock nil))
-
-(defun mlinks-start-marking-links ()
-  (when (mlinks-want-marked-links)
-    (mlink-font-lock t)))
-
-;; Fix-me: old links, range handling?
-(defvar mlinks-after-change-extra 100)
-
-(defun mlinks-after-change (beg end len)
-  (let ((funs (mlinks-get-action 'next)))
-    (unless funs
-      (setq funs (mlinks-get-action 'next-mark)))
-    (when funs
-      (setq mlinks-link-update-pos-min (- beg mlinks-after-change-extra))
-      (setq mlinks-link-update-pos-max (+ end mlinks-after-change-extra))
-      (let* ((range (mlinks-remove-overlays mlinks-link-update-pos-min mlinks-link-update-pos-max))
-             (min (car range))
-             (max (cdr range)))
-        (when (< min mlinks-link-update-pos-min) (setq mlinks-link-update-pos-min (- min mlinks-after-change-extra)))
-        (when (> max mlinks-link-update-pos-max) (setq mlinks-link-update-pos-max (+ max mlinks-after-change-extra))))
-      ;;(mlinks-mark-next-link (current-buffer))
-      )))
-(put 'mlinks-after-change 'permanent-local t)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;; text-mode etc ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defvar mlinks-plain-urls-regexp
+  (rx-to-string `(or (submatch (optional "mailto:")
+                               (regexp ,(concat
+                                         ;;"[a-z0-9$%(*-=?[_][^<>\")!;:,{}]*"
+                                         "[a-z0-9$%(*=?[_-][^<>\")!;:,{}]*"
+                                         "\@"
+                                         "\\(?:[a-z0-9\-]+\.\\)+[a-z0-9]\\{2,4\\}")))
+                     (submatch (or (regexp "https?://")
+                                   "www.")
+                               (1+ (any ,url-get-url-filename-chars))
+                               )
+                     )))
+
+(defun mlinks-plain-urls-fontify (bound)
+  (mlinks-fontify bound mlinks-plain-urls-regexp 0))
+
+(defun mlinks-goto-plain-url ()
+  (let* ((range (mlinks-link-range (point)))
+         (link  (when range (buffer-substring-no-properties (car range) (cdr range)))))
+    ;;(mlinks-html-href-act-on link)
+    (when (= 0 (string-match mlinks-plain-urls-regexp link))
+      (let ((which (if (match-end 1) 1 2)))
+        (cond
+         ((= 1 which)
+          (mlinks-html-mail-to link)
+          t)
+         ((= 2 which)
+          (browse-url link)
+          t)
+         (t nil))))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;; nxhtml-mode ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun mlinks-html-style-goto ()
   (mlinks-html-style-mode-fun t))
 
-(defun mlinks-html-style-hili ()
-  (mlinks-html-style-mode-fun nil))
-
-;; Fix-me: All must be on one line now. Can that be changed?
-;; This is where Shaowei Dai got
-;;   Debugger entered--Lisp error: (invalid-read-syntax "] in a list")
-(require 'rx)
-(defvar mlinks-html-link-regex
+(defvar mlinks-html-link-regexp
   ;; This value takes care of nxhtml-strval-mode (and is therefore a little bit incorrect ...)
   ;;"\\(?:^\\|[[:space:]]\\)\\(?:href\\|src\\)[[:space:]]*=[[:space:]]*\"\\([^<«\"]*\\)\""
   (rx (or "^" space)
@@ -851,41 +798,17 @@ Any command cancels this state."
               (0+ (not (any "\'"))))
              "'")))))
 
-;;(require 'rx)
-;;(rx
-
-(defun mlinks-html-forward-link (&optional from bound)
-  (when (if from
-            (save-excursion
-              (goto-char from)
-              (re-search-forward mlinks-html-link-regex bound t))
-          (re-search-forward mlinks-html-link-regex bound t))
-    ;;(message "mlinks-html-link-regex match-string0=%s, 1=%s, 2=%s" (match-string-no-properties 0) (match-string-no-properties 1) (match-string-no-properties 2))
-    (let ((which (if (match-beginning 1) 1 2)))
-      (cons (1+ (match-beginning which)) (1- (match-end which))))))
-
-(defun mlinks-html-backward-link (&optional from)
-  (when (if from
-            (save-excursion
-              (goto-char from)
-              (re-search-backward mlinks-html-link-regex nil t))
-          (re-search-backward mlinks-html-link-regex nil t))
-    ;;(cons (match-beginning 1) (match-end 1))))
-    (let ((which (if (match-beginning 1) 1 2)))
-      (cons (1+ (match-beginning which)) (1- (match-end which))))))
-
 (defun mlinks-html-style-mode-fun (goto)
   (let (start
         end
         bounds)
     (save-excursion
-      ;;(when (search-forward "\"" (line-end-position) t)
       (forward-char)
       (when (< 0 (skip-chars-forward "^\"'" (line-end-position)))
         (forward-char)
         (save-match-data
           (when (looking-back
-                 mlinks-html-link-regex
+                 mlinks-html-link-regexp
                  (line-beginning-position -1))
             (let ((which (if (match-beginning 1) 1 2)))
               (setq start (1+ (match-beginning which)))
@@ -935,9 +858,7 @@ Any command cancels this state."
               (goto-char here))))))))
 
 (defun mlinks-html-mail-to (addr)
-  (cond ((fboundp 'w32-shell-execute)
-         (w32-shell-execute "open" addr))
-        (t (message "Don't know how to how to start mail"))))
+  (browse-url addr))
 
 (defun mlinks-html-href-act-on (href-val)
   (if href-val
@@ -997,7 +918,7 @@ Any command cancels this state."
             (let ((ext (downcase (file-name-extension file))))
               (when (member ext '("htm" "html"))
                 (add-to-list 'possible (cons 'view-local (list file anchor))))
-              (when (and (featurep 'gimp)
+              (when (and (featurep 'gimpedit)
                          (member ext '("gif" "png" "jpg" "jpeg")))
                 (add-to-list 'possible (cons 'edit-gimp (list file anchor)))))
             (when (featurep 'html-upl)
@@ -1023,13 +944,15 @@ Any command cancels this state."
 (defun mlinks-elisp-custom-goto ()
   (mlinks-elisp-mode-fun 'custom))
 
-(defun mlinks-custom-next-mark ()
-  (catch 'stop
-    (while (search-forward "`" nil t)
-      (forward-char)
-      (let ((this (mlinks-elisp-mode-fun nil)))
-        (when this
-          (throw 'stop this))))))
+(defvar mlinks-custom-link-regexp
+  (rx "`"
+      (group
+       (1+ (not (any "'"))))
+      "'"))
+
+(defun mlinks-custom-fontify (bound)
+  (mlinks-fontify bound mlinks-custom-link-regexp 0))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;; emacs-lisp-mode ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1119,7 +1042,7 @@ Any command cancels this state."
                   (t
                    (message "%s: %s" (car err) (error-message-string err))))))))
           (if (= 1 (length defs-places))
-            (setq def (car defs-places))
+              (setq def (car defs-places))
             (let ((many nil)
                   lnk)
               (dolist (d defs-places)
@@ -1159,7 +1082,7 @@ Any command cancels this state."
                      (file (with-current-buffer buf buffer-file-name))
                      (orig-buf (find-file-noselect file)))
                 (mlinks-switch-to-buffer orig-buf)
-              (let ((p (cdr (cdr def))))
+                (let ((p (cdr (cdr def))))
                   ;; Fix-me: Move this test to a more general place.
                   (if (or (< p (point-min))
                           (> p (point-max)))
@@ -1183,11 +1106,11 @@ Any command cancels this state."
                         (when orig-buf
                           (mlinks-switch-to-buffer orig-buf))
                         ;;(message "cb=%s" (current-buffer))
-                (if (or (< p (point-min))
-                        (> p (point-max)))
-                    (when (y-or-n-p (format "%s is invisible because of narrowing. Widen? " symbol--))
-                      (widen)
-                      (goto-char p))
+                        (if (or (< p (point-min))
+                                (> p (point-max)))
+                            (when (y-or-n-p (format "%s is invisible because of narrowing. Widen? " symbol--))
+                              (widen)
+                              (goto-char p))
                           (goto-char p)))
                     (goto-char p)))))
              ((eq goto-- 'custom)
@@ -1213,133 +1136,223 @@ Any command cancels this state."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;; Helpers when adopting for modes ;;;;;;;;;;;;;;;;;
-(defun mlinks-hit-test ()
-  "Just a helper function for adding support for new modes."
-  (let* (
-         (s0 (if (match-string 0) (match-string 0) ""))
-         (s1 (if (match-string 1) (match-string 1) ""))
-         (s2 (if (match-string 2) (match-string 2) ""))
-         (s3 (if (match-string 3) (match-string 3) ""))
-         )
-  (message "match0=%s, match1=%s, match2=%s, match3=%s" s0 s1 s2 s3)))
 
-(defun mlinks-handle-reg-fun-list (reg-fun-list)
-  "Just a helper function."
-  (let (done
-        regexp
-        hitfun
-        m
-        p
-        b
-        )
-    (dolist (rh reg-fun-list)
-      (message "rh=%s" rh);(sit-for 2)
-      (unless done
-        (setq regexp (car rh))
-        (setq hitfun (cadr rh))
-        (message "regexp=%s, hitfun=%s" regexp hitfun);(sit-for 1)
-        (when (and (setq m (re-search-backward regexp (line-beginning-position) t))
-                 (> p (match-beginning 0)))
-          (setq done t)
-          (setq b (match-beginning 0))
-          (setq e (match-end 0))
-          )
-        (if (not (and b e
-                      (< b p)
-                      (< p e)))
-            (message "MLinks Mode did not find any link here")
-          (goto-char b)
-          (if (not (looking-at regexp))
-              (error "Internal error, regexp %s, no match looking-at" regexp)
-            (let ((last (car mlinks-places))
-                  (m (make-marker)))
-              (set-marker m (line-beginning-position))
-              (when (or (not last)
-                        (/= m last))
-                (setq mlinks-places (cons m mlinks-places))))
-            (funcall hitfun))
-          )))))
+;;; Save this, do not delete this comment:
+
+;; (defun mlinks-hit-test ()
+;;   "Just a helper function for adding support for new modes."
+;;   (let* (
+;;          (s0 (if (match-string 0) (match-string 0) ""))
+;;          (s1 (if (match-string 1) (match-string 1) ""))
+;;          (s2 (if (match-string 2) (match-string 2) ""))
+;;          (s3 (if (match-string 3) (match-string 3) ""))
+;;          )
+;;     (message "match0=%s, match1=%s, match2=%s, match3=%s" s0 s1 s2 s3)))
+
+;; (defun mlinks-handle-reg-fun-list (reg-fun-list)
+;;   "Just a helper function."
+;;   (let (done
+;;         regexp
+;;         hitfun
+;;         m
+;;         p
+;;         b
+;;         )
+;;     (dolist (rh reg-fun-list)
+;;       (message "rh=%s" rh);(sit-for 2)
+;;       (unless done
+;;         (setq regexp (car rh))
+;;         (setq hitfun (cadr rh))
+;;         (message "regexp=%s, hitfun=%s" regexp hitfun);(sit-for 1)
+;;         (when (and (save-match-data
+;;                      (setq m (re-search-backward regexp (line-beginning-position) t))
+;;                      (> p (match-beginning 0))))
+;;           (setq done t)
+;;           (setq b (match-beginning 0))
+;;           (setq e (match-end 0))
+;;           )
+;;         (if (not (and b e
+;;                       (< b p)
+;;                       (< p e)))
+;;             (message "MLinks Mode did not find any link here")
+;;           (goto-char b)
+;;           (if (not (looking-at regexp))
+;;               (error "Internal error, regexp %s, no match looking-at" regexp)
+;;             (let ((last (car mlinks-places))
+;;                   (m (make-marker)))
+;;               (set-marker m (line-beginning-position))
+;;               (when (or (not last)
+;;                         (/= m last))
+;;                 (setq mlinks-places (cons m mlinks-places))))
+;;             (funcall hitfun))
+;;           )))))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Font lock (not ready)
+;;; Font Lock use
 
-(defun mlink-render-link (beg end)
-  (when (not (get-text-property beg 'mlink-fontified))
-    (save-excursion
-      (goto-char beg)
-      (add-text-properties beg (+ beg 1) (list 'mlink-fontified t))
-      (let* ((sexp (read (current-buffer)))
-	     (plist (eval sexp))
-	     (renderer (plist-get plist :render)))
-	(when (null renderer) (error "No renderer for link."))
-	(funcall renderer beg end)))))
+(defvar mlinks-link-update-pos-max nil)
+(make-variable-buffer-local 'mlinks-link-update-pos-max)
+(put 'mlinks-link-update-pos-max 'permanent-local t)
+
+(defun mlinks-remove-font-lock ()
+  "Remove info from font-lock."
+  (when (mlinks-want-font-locking)
+    (mlink-font-lock nil)))
+
+(defun mlinks-add-font-lock ()
+  "Add info to font-lock."
+  (when (mlinks-want-font-locking)
+    (mlink-font-lock t)))
+
+(defun mlinks-want-font-locking ()
+  (or (mlinks-get-mode-value 'fontify)
+      (mlinks-get-mode-value 'next-mark)))
 
 
-(defun mlink-do-font-lock (add-or-remove)
-  (funcall add-or-remove nil
-	   `((,mlink-generic-regexp
-	      0
-	      (let ((beg (match-beginning 0))
-		    (end (match-end 0)))
-		(mlink-render-link beg end)
-		mlink-generic-face)
-	      prepend))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Font Lock integration
 
 (defun mlink-font-lock (on)
-  (let ((add-or-remove (if on 'font-lock-add-keywords 'font-lock-remove-keywords))
-        (link-fun))
-    (funcall add-or-remove nil
-             `((mlinks-html-forward-link-2
-                1
-                mlinks-link
-                prepend)))
-    (font-lock-mode -1)
-    (font-lock-mode 1)))
+  (let* ((add-or-remove (if on 'font-lock-add-keywords 'font-lock-remove-keywords))
+         (fontify-fun (car (mlinks-get-mode-value 'fontify)))
+         (args (list nil `(( ,fontify-fun ( 0 mlinks-font-lock-face t ))))))
+    (when fontify-fun
+      ;; Note: Had a lot of trouble with this which I modelled first
+      ;; after dlink. Using hi-lock as a model made it work with
+      ;; mumamo too.
+      ;;
+      ;; Next arg, HOW, is needed to get it to work with mumamo. This
+      ;; adds it last, like hi-lock.
+      (when on (setq args (append args (list t))))
+      (apply add-or-remove args)
+      (font-lock-mode -1)
+      (font-lock-mode 1))))
 
-(defvar mlinks-nw 0)
-(defun mlinks-html-forward-link-2 (bound)
-  (when t ;;(> 100 (setq mlinks-nw (1+ mlinks-nw)))
-    (let ((start (point))
-          end-start
-          stop next-stop
-          (more t)
-          old-beg old-end
-          (wn 1)
-          ret)
-      (if (not (re-search-forward mlinks-html-link-regex bound t))
-      ;;(if (not (mlinks-html-forward-link nil bound))
-          (setq end-start bound)
-        (setq ret t)
-        (setq end-start (1- (point)))
-        (let* ((which (if (match-beginning 1) 1 2))
-               (beg (match-beginning which))
-               (end (match-end which)))
-          ;; Add the link, but how do I remove it? Or do I remove it?
-          ;; (message "added %s %s" beg end)
-          ;; (add-text-properties beg end
-          ;;                      (list 'mlinks-html-link t
-          ;;                            'mouse-face 'highlight))
-          ))
-      (setq stop start)
-      (setq next-stop -1)
-      (while (and (> 100 (setq wn (1+ wn)))
-                  (setq next-stop (next-single-property-change stop 'mlinks-html-link nil end-start))
-                  (/= next-stop stop))
-        (setq stop next-stop)
-        ;;(message "wn=%s, stop=%s beg=%s" wn stop end-start)
-        (if (get-text-property stop 'mlinks-html-link)
-            (setq old-beg stop)
+(defun mlinks-html-fontify (bound)
+  (mlinks-fontify bound mlinks-html-link-regexp 1))
+
+(defun mlinks-fontify (bound regexp border)
+  (let ((start (point))
+        end-start
+        stop next-stop
+        (more t)
+        old-beg old-end
+        (wn 1)
+        ret)
+    ;; Note: we shouldnot use save-match-data here. Instead
+    ;; set-match-data is called below!
+    (if (not (re-search-forward regexp bound t))
+        (setq end-start bound)
+      (setq ret t)
+      (setq end-start (- (point) 2))
+      (let* ((which (if (match-beginning 1) 1 2))
+             (beg (+ (match-beginning which) border))
+             (end (- (match-end which) border)))
+        (put-text-property beg end 'mlinks-link t)
+        (set-match-data (list (copy-marker end) (copy-marker beg)))))
+    (setq stop start)
+    (setq next-stop -1)
+    (while (and (> 100 (setq wn (1+ wn)))
+                (setq next-stop (next-single-char-property-change stop 'mlinks-link nil end-start))
+                (/= next-stop stop))
+      (setq stop next-stop)
+      (if (get-text-property stop 'mlinks-link)
+          (setq old-beg stop)
+        (when old-beg
+          (remove-list-of-text-properties old-beg stop '(mlinks-link 'mouse-face)))))
+    ret))
+
+(defun mlinks-next-link ()
+  "Find next link, fontify as necessary."
+  (let* ((here (point))
+         (prev-pos (point))
+         (fontified-here (get-text-property (max (point-min) (1- prev-pos)) 'fontified))
+         (fontified-to (next-single-char-property-change prev-pos 'fontified))
+         (pos (next-single-char-property-change prev-pos 'mlinks-link nil
+                                                (or fontified-to (point-max))))
+         (fontified-all (and fontified-here (not fontified-to)))
+         ready
+         next-fontified-to)
+    (while (not (or ready
+                    (and fontified-all
+                         (not pos))))
+      (if pos
           (progn
-            ;;(message "remmd %s %s" old-beg stop)
-            (when old-beg
-              (remove-list-of-text-properties old-beg stop '(mlinks-html-link 'mouse-face))))
-          ))
-      ret)))
-;;   (message "kb tab=%s, \\t=%s, ovl=%s, keymap=%s"
-;;            (key-binding [tab])
-;;            (key-binding "\t")
-;;            (overlays-at (point))
-;;            (overlay-get mlinks-hilight-point-ovl 'keymap))
+            (unless (get-text-property pos 'mlinks-link)
+              ;; Get to next link
+              (setq prev-pos pos)
+              (setq pos (next-single-char-property-change prev-pos 'mlinks-link nil
+                                                          (or fontified-to (point-max)))))
+            (when pos
+              (setq ready (get-text-property pos 'mlinks-link))
+              (setq prev-pos pos)
+              (unless ready (setq pos nil))))
+        (unless (or fontified-all fontified-to)
+          (if (get-text-property prev-pos 'fontified)
+              (setq fontified-all
+                    (not (setq fontified-to
+                               (next-single-char-property-change prev-pos 'fontified))))
+            (setq fontified-to ( or (previous-single-char-property-change prev-pos 'fontified)
+                                    1))))
+        (setq next-fontified-to (min (+ fontified-to 5000)
+                                     (point-max)))
+        (mumamo-with-buffer-prepared-for-jit-lock
+         (progn
+           (put-text-property fontified-to next-fontified-to 'fontified t)
+           (font-lock-fontify-region fontified-to next-fontified-to)))
+        (setq fontified-to (next-single-char-property-change (1- next-fontified-to)
+                                                             'fontified))
+        (setq fontified-all (not fontified-to))
+        (setq pos (next-single-char-property-change prev-pos 'mlinks-link nil
+                                                    (or fontified-to (point-max))))))
+    (when ready prev-pos)))
+
+(defun mlinks-prev-link ()
+  "Find previous link, fontify as necessary."
+  (let* ((prev-pos (point))
+         (fontified-from (previous-single-char-property-change prev-pos 'fontified))
+         (fontified-here (get-text-property (max (point-min) (1- prev-pos)) 'fontified))
+         (fontified-all (and fontified-here (not fontified-from)))
+         (pos (when fontified-here
+                (previous-single-char-property-change prev-pos 'mlinks-link nil
+                                                      (or fontified-from 1))))
+         ready
+         next-fontified-from)
+    (while (not (or ready
+                    (and fontified-all
+                         (not pos))))
+      (assert (numberp prev-pos) t)
+      (if pos
+          (progn
+            (when (and (> (1- pos) (point-min))
+                       (get-text-property (1- pos) 'mlinks-link))
+              ;; Get out of current link
+              (setq prev-pos pos)
+              (setq pos (previous-single-char-property-change prev-pos 'mlinks-link nil
+                                                              (or fontified-from 1))))
+            (when pos
+              (setq prev-pos pos)
+              (setq ready (and (get-text-property pos 'fontified)
+                               (or (= 1 pos)
+                                   (not (get-text-property (1- pos) 'mlinks-link)))
+                               (get-text-property pos 'mlinks-link)))
+              (unless ready (setq pos nil))))
+        (setq next-fontified-from (max (- fontified-from 5000)
+                                       (point-min)))
+        (mumamo-with-buffer-prepared-for-jit-lock
+         (progn
+           (put-text-property next-fontified-from fontified-from 'fontified t)
+           (font-lock-fontify-region next-fontified-from fontified-from)))
+        (setq fontified-from (previous-single-char-property-change
+                              (1+ next-fontified-from) 'fontified))
+        (setq fontified-all (not fontified-from))
+        (setq pos (previous-single-char-property-change prev-pos 'mlinks-link nil
+                                                        (or fontified-from 1)))))
+    (when ready pos)))
+
 
 ;;; This is for the problem reported by some Asian users:
 ;;;

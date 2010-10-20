@@ -46,12 +46,82 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'rng-valid))
+(eval-and-compile (require 'rng-valid))
 (eval-when-compile (require 'rng-nxml))
-(eval-when-compile (unless load-file-name (require 'nxhtml-mode)))
+(eval-when-compile (unless load-file-name (require 'nxhtml-mode nil t)))
 
-(require 'rng-valid)
+(eval-when-compile
+  (let* ((this-file (or load-file-name
+                        (when (boundp 'bytecomp-filename) bytecomp-filename)
+                        buffer-file-name))
+         (this-dir (file-name-directory this-file))
+         (util-dir (expand-file-name "../util/" this-dir))
+         (load-path (cons util-dir load-path)))
+    (require 'ourcomments-util)))
 ;;(require 'ourcomments-util)
+
+;; (setq x (macroexpand '(defcustom my-temp-opt t "doc" :type 'boolean)))
+;; (setq x (macroexpand '(define-minor-mode my-temp-mode "doc")))
+;; (setq x (macroexpand '(define-toggle my-temp-toggle t "doc")))
+;;(define-toggle rngalt-display-validation-header t
+(define-minor-mode rngalt-display-validation-header
+  "Display XML validation headers at the top of buffer when t.
+The validation header is only displayed in buffers where the main
+major mode is derived from `nxml-mode'."
+  :global t
+  :init-value t
+  :group 'relax-ng
+  :group 'nxhtml
+  (when (fboundp 'rngalt-update-validation-header-overlay-everywhere)
+    (rngalt-update-validation-header-overlay-everywhere)))
+
+(defun rngalt-display-validation-header-toggle ()
+  "Toggle `rngalt-display-validation-header'."
+  (interactive)
+  (rngalt-display-validation-header (if rngalt-display-validation-header -1 1)))
+
+;;(define-toggle rngalt-minimal-validation-header t
+(define-minor-mode rngalt-minimal-validation-header
+  "If non-nil display only a short informaion about the XML validation header.
+See also `rngalt-display-validation-header'."
+  :global t
+  :init-value t
+  :group 'relax-ng
+  :group 'nxhtml
+  (when (fboundp 'rngalt-update-validation-header-overlay-everywhere)
+    (rngalt-update-validation-header-overlay-everywhere)))
+
+(defun rngalt-minimal-validation-header-toggle ()
+  "Toggle `rngalt-minimal-validation-header'."
+  (interactive)
+  (rngalt-minimal-validation-header (if rngalt-minimal-validation-header -1 1)))
+
+(defface rngalt-validation-header-top
+  '((t (:foreground "RGB:87/CE/FA" :background "white")))
+  "Face first line of validation header."
+  :group 'nxhtml)
+
+(defface rngalt-validation-header-bottom
+  '((t (:foreground "white" :background "RGB:87/CE/FA")))
+  "Face first line of validation header."
+  :group 'nxhtml)
+
+;; FIX-ME: remember to clear these variable, but where?
+(defvar rngalt-validation-header nil)
+(make-variable-buffer-local 'rngalt-validation-header)
+(put 'rngalt-validation-header 'permanent-local t)
+
+(defvar rngalt-current-schema-file-name nil)
+(make-variable-buffer-local 'rngalt-current-schema-file-name)
+(put 'rngalt-current-schema-file-name 'permanent-local t)
+
+(defvar rngalt-validation-header-overlay nil)
+(make-variable-buffer-local 'rngalt-validation-header-overlay)
+(put 'rngalt-validation-header-overlay 'permanent-local t)
+
+(defvar rngalt-major-mode nil)
+(make-variable-buffer-local 'rngalt-major-mode)
+(put 'rngalt-major-mode 'permanent-local t)
 
 (defvar rngalt-complete-first-try nil
   "First function to try for completion.
@@ -519,23 +589,6 @@ nxhtml.el.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Validation start state
 
-;; FIX-ME: remember to clear these variable, but where?
-(defvar rngalt-validation-header nil)
-(make-variable-buffer-local 'rngalt-validation-header)
-(put 'rngalt-validation-header 'permanent-local t)
-
-(defvar rngalt-current-schema-file-name nil)
-(make-variable-buffer-local 'rngalt-current-schema-file-name)
-(put 'rngalt-current-schema-file-name 'permanent-local t)
-
-(defvar rngalt-validation-header-overlay nil)
-(make-variable-buffer-local 'rngalt-validation-header-overlay)
-(put 'rngalt-validation-header-overlay 'permanent-local t)
-
-(defvar rngalt-major-mode nil)
-(make-variable-buffer-local 'rngalt-major-mode)
-(put 'rngalt-major-mode 'permanent-local t)
-
 (defun rngalt-after-change-major ()
   (unless (and (boundp 'mumamo-set-major-running)
                mumamo-set-major-running)
@@ -551,7 +604,8 @@ nxhtml.el.
     map))
 
 (defun rngalt-update-validation-header-overlay ()
-  (if (and rngalt-display-validation-header
+  (if (and (boundp 'rngalt-display-validation-header)
+           rngalt-display-validation-header
            rngalt-validation-header
            (or (derived-mode-p 'nxml-mode)
                (let ((major-mode rngalt-major-mode))
@@ -600,35 +654,6 @@ nxhtml.el.
       (with-current-buffer b
         (when rngalt-validation-header
           (rngalt-update-validation-header-overlay))))))
-
-(define-toggle rngalt-display-validation-header t
-  "Display XML validation headers at the top of buffer when t.
-The validation header is only displayed in buffers where the main
-major mode is derived from `nxml-mode'."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (rngalt-update-validation-header-overlay-everywhere))
-  :group 'nxml
-  :group 'nxhtml)
-
-(define-toggle rngalt-minimal-validation-header t
-  "If non-nil display only a short informaion about the XML validation header.
-See also `rngalt-display-validation-header'."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (rngalt-update-validation-header-overlay-everywhere))
-  :group 'nxml
-  :group 'nxhtml)
-
-(defface rngalt-validation-header-top
-  '((t (:foreground "RGB:87/CE/FA" :background "white")))
-  "Face first line of validation header."
-  :group 'nxhtml)
-
-(defface rngalt-validation-header-bottom
-  '((t (:foreground "white" :background "RGB:87/CE/FA")))
-  "Face first line of validation header."
-  :group 'nxhtml)
 
 ;; This is exactly the same as the original `rng-set-initial-state'
 ;; except when `rngalt-validation-header' is non-nil."
@@ -685,23 +710,26 @@ See also `rngalt-display-validation-header'."
 ;; For as-external.el
 ;;;###autoload
 (defun rngalt-set-validation-header (start-of-doc)
-  (rng-validate-mode -1)
-  (if start-of-doc
-      (progn
-        (add-hook 'after-change-major-mode-hook 'rngalt-after-change-major nil t)
-        (setq rngalt-validation-header (rngalt-get-state-after start-of-doc))
-        (rng-set-schema-file-1 (cadr rngalt-validation-header))
-        (setq rngalt-current-schema-file-name rng-current-schema-file-name)
-        (setq rng-compile-table nil)
-        (setq rng-ipattern-table nil)
+  (let ((old-rvm rng-validate-mode))
+    (when old-rvm (rng-validate-mode -1))
+    (if start-of-doc
+        (progn
+          (add-hook 'after-change-major-mode-hook 'rngalt-after-change-major nil t)
+          (setq rngalt-validation-header (rngalt-get-state-after start-of-doc))
+          (rng-set-schema-file-1 (cadr rngalt-validation-header))
+          (setq rngalt-current-schema-file-name rng-current-schema-file-name)
+          (setq rng-compile-table nil)
+          (setq rng-ipattern-table nil)
         (setq rng-last-ipattern-index nil))
-    (remove-hook 'after-change-major-mode-hook 'rngalt-after-change-major t)
-    (setq rngalt-validation-header nil)
-    (rng-set-vacuous-schema)
-    (rng-auto-set-schema))
-  (rng-validate-mode 1)
-  (rngalt-update-validation-header-overlay)
-  (rngalt-update-validation-header-buffer))
+      (remove-hook 'after-change-major-mode-hook 'rngalt-after-change-major t)
+      (setq rngalt-validation-header nil)
+      (when old-rvm
+        (rng-set-vacuous-schema)
+        (rng-auto-set-schema)))
+    (when old-rvm
+      (rng-validate-mode 1)
+      (rngalt-update-validation-header-overlay)
+      (rngalt-update-validation-header-buffer))))
 
 (defun rngalt-reapply-validation-header ()
   (when rngalt-validation-header
@@ -724,9 +752,9 @@ See also `rngalt-display-validation-header'."
 ;; FIX-ME: Add edit header?
 
 (defun rngalt-get-validation-header-buffer ()
-  (let ((b (get-buffer "*XML Validation Header*")))
+  (let ((b (get-buffer " *XML Validation Header*")))
     (unless b
-      (setq b (get-buffer-create "*XML Validation Header*"))
+      (setq b (get-buffer-create " *XML Validation Header*"))
       (with-current-buffer b
         ;;(fundamental-mode)
         (nxml-mode)))

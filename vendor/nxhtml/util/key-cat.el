@@ -1,8 +1,6 @@
 ;;; key-cat.el --- List key bindings by category
-
-;; Copyright (C) 2005 by Lennart Borgman
-
-;; Author: Lennart Borgman <lennartDOTborgmanDOT073ATstudentDOTluDOTse>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Sat Jan 28 2006
 ;; Version: 0.25
 ;; Last-Updated: 2009-05-09 Sat

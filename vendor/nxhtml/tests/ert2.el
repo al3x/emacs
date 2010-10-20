@@ -44,6 +44,15 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(eval-when-compile
+  (let* ((this-file (or load-file-name
+                        (when (boundp 'bytecomp-filename) bytecomp-filename)
+                        buffer-file-name))
+         (this-dir (file-name-directory this-file))
+         (load-path (cons this-dir load-path)))
+    (require 'ert)))
+
 (let* ((this-dir
         (file-name-directory (if load-file-name load-file-name buffer-file-name)))
        ;;(load-path (copy-list load-path)))
@@ -131,7 +140,7 @@ To access these temporary test buffers use
 - `ert-list-temp-test-buffers': list them
 - `ert-kill-temp-test-buffers': delete them"
   (declare (indent 1) (debug t))
-  (let ((file-name (gensym "file-name-")))
+  (let ((file-name (make-symbol "file-name-")))
     `(let* ((,file-name (ert-get-test-file-name ,file-name-form))
             (mode-line-buffer-identification (list (propertize "%b" 'face 'highlight)))
             ;; Give the buffer a name that allows us to switch to it

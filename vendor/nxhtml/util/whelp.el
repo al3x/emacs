@@ -169,7 +169,7 @@ The third argument DOC is a documentation string for the widget."
       (princ " to find out more about it.")
       (fill-region (point-min) (point-max))
       )
-    (print-help-return-message)))
+    (with-no-warnings (print-help-return-message))))
 
 (defun describe-button (pos)
   (let ((button (button-at pos)))
@@ -177,7 +177,8 @@ The third argument DOC is a documentation string for the widget."
       (help-setup-xref (list #'describe-button pos) (interactive-p))
       (with-current-buffer (help-buffer)
         (let ((inhibit-read-only t)
-              (button-marker (gensym)))
+              ;;(button-marker (gensym))
+              )
           (describe-insert-header pos)
           (insert-text-button "This field"
                               'action (lambda (button)
@@ -192,14 +193,15 @@ The third argument DOC is a documentation string for the widget."
                               'action (lambda (button)
                                         (info "(elisp) Buttons")))
           (princ ". You can ")
-          (set button-marker pos)
+          ;;(set button-marker pos)
           (insert-text-button "browse the button's properties"
                               'action `(lambda (button)
-                                         (button-browse-at (symbol-value ',button-marker)))))
+                                         ;;(button-browse-at (symbol-value ',button-marker)))))
+                                         (button-browse-at ,pos))))
         (princ " to find out more about it.")
         (fill-region (point-min) (point-max))
         )
-      (print-help-return-message))))
+      (with-no-warnings (print-help-return-message)))))
 
 ;; Obsolete
 ;; (defun whelp-describe-symbol (sym)
@@ -332,7 +334,7 @@ The third argument DOC is a documentation string for the widget."
 ;;                     ))
 ;;                 (princ "\n")
 ;;                 )))
-;;         (print-help-return-message)))))
+;;         (with-no-warnings (print-help-return-message))))))
 
 
 
@@ -921,6 +923,7 @@ If not a marker use the current buffer."
     ))
 
 
+;;;###autoload
 (defgroup whelp nil
   "Customization group for whelp."
   :group 'emacs)
@@ -980,6 +983,6 @@ The :value of the widget shuld be the button to be browsed."
            (princ (format "No explanation found for %s" property))
            )
          )
-        (print-help-return-message)))))
+        (with-no-warnings (print-help-return-message))))))
 
 (provide 'whelp)

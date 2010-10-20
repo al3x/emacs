@@ -60,6 +60,8 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'ourcomments-indirect-fun nil t))
 
 ;;;; Idle sorting
 
@@ -115,9 +117,16 @@ prevent use of them."
 (defsubst majmodpri-priority (mode)
   "Return major mode MODE priority."
   (if (and majmodpri-no-nxml
-           (symbolp mode)
-           (save-match-data
-             (string-match "nxhtml-mumamo" (symbol-name mode))))
+           ;; (symbolp mode)
+           ;; (save-match-data
+           ;;   (string-match "nxhtml-mumamo" (symbol-name mode))))
+           (let* ((real (or (ourcomments-indirect-fun mode)
+                            mode))
+                  (chunk (when real (get real 'mumamo-chunk-family)))
+                  (major-mode (when chunk
+                                (cadr chunk))))
+             (when major-mode
+               (derived-mode-p 'nxml-mode))))
       0
     (length (memq mode majmodpri-mode-priorities))))
 
@@ -202,7 +211,7 @@ The lists can be sorted when loading elisp libraries, see
 
 See also `majmodpri-apply-priorities'."
   (interactive)
-  (message "majmodpri-sort-lists running ...")
+  ;;(message "majmodpri-sort-lists running ...")
   (majmodpri-cancel-idle-sort)
   (when (memq 'magic-mode-alist majmodpri-lists-to-sort)
     (majmodpri-sort-magic-list 'magic-mode-alist))
@@ -210,7 +219,8 @@ See also `majmodpri-apply-priorities'."
     (majmodpri-sort-auto-mode-alist))
   (when (memq 'magic-fallback-mode-alist majmodpri-lists-to-sort)
     (majmodpri-sort-magic-list 'magic-fallback-mode-alist))
-  (message "majmodpri-sort-lists running ... (done)"))
+  ;;(message "majmodpri-sort-lists running ... (done)")
+  )
 
 
 ;;;###autoload
@@ -228,13 +238,17 @@ in buffers."
 
 (defun majmodpri-check-normal-mode ()
   "Like `normal-mode', but keep major mode if same."
-  (let ((old-major-mode major-mode)
+  (let ((keep-mode-if-same t)
+        (old-major-mode major-mode)
         (old-mumamo-multi-major-mode (when (boundp 'mumamo-multi-major-mode)
                                        mumamo-multi-major-mode)))
     (report-errors "File mode specification error: %s"
       (set-auto-mode t))
+    ;;(msgtrc "majmodpri-check %s %s %s" (current-buffer) major-mode mumamo-multi-major-mode)
     (unless (and (eq old-major-mode major-mode)
-                 (eq old-mumamo-multi-major-mode mumamo-multi-major-mode))
+                 (or (not old-mumamo-multi-major-mode)
+                     (eq old-mumamo-multi-major-mode mumamo-multi-major-mode)))
+      (msgtrc "majmodpri-check changing")
       (report-errors "File local-variables error: %s"
         (hack-local-variables))
       ;; Turn font lock off and on, to make sure it takes account of
@@ -261,10 +275,10 @@ First run `majmodpri-sort-lists' and then if CHANGE-MODES is
 non-nil apply to existing file buffers.  If interactive ask
 before applying."
   (interactive '(nil))
-  (message "majmodpri-apply-priorities running...")
+  (message "majmodpri-apply-priorities running ...")
   (majmodpri-sort-lists)
   (when (or change-modes
-            (called-interactively-p))
+            (with-no-warnings (called-interactively-p)))
     (let (file-buffers)
       (dolist (buffer (buffer-list))
         (with-current-buffer buffer
@@ -275,8 +289,9 @@ before applying."
                 (setq file-buffers (cons buffer file-buffers))))))
       (if (not file-buffers)
           (when change-modes
-            (message "majmodpri-apply-priorities: No file buffers to change modes in"))
-        (when (called-interactively-p)
+            ;;(message "majmodpri-apply-priorities: No file buffers to change modes in")
+            )
+        (when (with-no-warnings (called-interactively-p))
           (setq change-modes
                 (y-or-n-p "Check major mode in all file visiting buffers? ")))
         (when change-modes
@@ -327,7 +342,7 @@ before applying."
     nxml-mode
 
     javascript-mode
-    espresso-mode
+    ;;espresso-mode
     rhtml-mode
     )
   "Priority list for major modes.
@@ -360,7 +375,7 @@ See `majmodpri-sort-lists' for more information."
   '(
     chart
     gpl
-    nxhtml-autoload
+    ;;nxhtml-autoload
     php-mode
     rnc-mode
     ruby-mode

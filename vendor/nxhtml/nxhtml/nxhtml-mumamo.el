@@ -45,9 +45,13 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'nxhtml))
+(eval-when-compile (require 'nxhtml nil t))
+(eval-when-compile (require 'nxhtml-base))
+(eval-when-compile (require 'nxhtml-mode))
+(eval-when-compile (require 'mumamo))
+(eval-and-compile  (require 'mumamo-fun))
 (eval-when-compile (require 'rng-valid nil t))
-(require 'mumamo-fun)
+;;(mumamo-fun-require)
 
 ;; (defgroup nxhtml-auto-val-head nil
 ;;   "Automatic turn on of XHTML validation headers."
@@ -122,6 +126,32 @@ This also covers inlined style and javascript."
     mumamo-chunk-onjs=
     )))
 
+;;;###autoload
+(define-mumamo-multi-major-mode mason-nxhtml-mumamo-mode
+  "Turn on multiple major modes for Mason using main mode `nxhtml-mode'.
+This covers inlined style and javascript."
+  ("Mason nxhtml Family" nxhtml-mode
+   (
+    mumamo-chunk-mason-perl-line
+    mumamo-chunk-mason-perl-single
+    mumamo-chunk-mason-perl-block
+    mumamo-chunk-mason-perl-init
+    mumamo-chunk-mason-perl-once
+    mumamo-chunk-mason-perl-cleanup
+    mumamo-chunk-mason-perl-shared
+    mumamo-chunk-mason-simple-comp
+    mumamo-chunk-mason-compcont
+    mumamo-chunk-mason-args
+    mumamo-chunk-mason-doc
+    mumamo-chunk-mason-text
+    mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
+    mumamo-chunk-style=
+    mumamo-chunk-onjs=
+    )))
+(add-hook 'mason-nxhtml-mumamo-mode-hook 'mumamo-define-html-file-wide-keys)
+;;(mumamo-inherit-sub-chunk-family-locally 'mason-nxhtml-mumamo-mode 'mason-nxhtml-mumamo-mode)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Genshi / kid
 
@@ -129,9 +159,9 @@ This also covers inlined style and javascript."
   "Like `nxhtml-mode' but with Genshi rnc.
 You should not use this! This is just a part of
 `genshi-nxhtml-mumamo-mode', use that instead."
-  (let* ((schema-dir (expand-file-name "../etc/schema/" nxhtml-src-dir))
+  (let* ((schema-dir (expand-file-name "etc/schema/" nxhtml-install-dir))
          (genshi-rnc (expand-file-name "qtmstr-xhtml.rnc" schema-dir)))
-    (message "nxhtml-src-dir =%s" nxhtml-src-dir)
+    ;;(message "nxhtml-src-dir =%s" nxhtml-src-dir)
     (message "schema-dir =%s" schema-dir)
     (when (or (not rng-current-schema-file-name)
               (string= "xhtml.rnc" (file-name-nondirectory rng-current-schema-file-name)))
@@ -152,10 +182,12 @@ You should not use this! This is just a part of
   "Turn on multiple major modes for Genshi with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("Genshi HTML Family" nxhtml-genshi-mode
-   (mumamo-chunk-genshi%
+   (;;mumamo-chunk-genshi%
     mumamo-chunk-genshi$
+    mumamo-chunk-py:=
+    mumamo-chunk-py:match
     mumamo-chunk-xml-pi
-    mumamo-chunk-alt-php
+    ;;mumamo-chunk-alt-php
     mumamo-chunk-inlined-style
     mumamo-chunk-inlined-script
     mumamo-chunk-style=
@@ -171,9 +203,9 @@ This also covers inlined style and javascript."
   "Like `nxhtml-mode' but with genshi rnc.
 You should not use this! This is just a part of
 `mjt-nxhtml-mumamo-mode', use that instead."
-  (let* ((schema-dir (expand-file-name "../etc/schema/" nxhtml-src-dir))
+  (let* ((schema-dir (expand-file-name "etc/schema/" nxhtml-install-dir))
          (genshi-rnc (expand-file-name "mjt.rnc" schema-dir)))
-    (message "nxhtml-src-dir =%s" nxhtml-src-dir)
+    ;;(message "nxhtml-src-dir =%s" nxhtml-src-dir)
     (message "schema-dir =%s" schema-dir)
     (when (or (not rng-current-schema-file-name)
               (string= "xhtml.rnc" (file-name-nondirectory rng-current-schema-file-name)))
@@ -212,7 +244,27 @@ This also covers inlined style and javascript."
 This also covers inlined style and javascript."
   ("Smarty nXhtml Family" nxhtml-mode
    (mumamo-chunk-xml-pi
+    mumamo-chunk-style=
+    mumamo-chunk-onjs=
+    ;;mumamo-chunk-inlined-style
+    ;;mumamo-chunk-inlined-script
+    mumamo-chunk-smarty-literal
+    mumamo-chunk-smarty-t
+    mumamo-chunk-smarty-comment
     mumamo-chunk-smarty
+    )))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; GSP
+
+;;;###autoload
+(define-mumamo-multi-major-mode gsp-nxhtml-mumamo-mode
+  "Turn on multiple major modes for GSP with main mode `nxhtml-mode'.
+This also covers inlined style and javascript."
+  ("GSP nXhtml Family" nxhtml-mode
+   (mumamo-chunk-gsp
+    mumamo-chunk-inlined-style
+    mumamo-chunk-inlined-script
     mumamo-chunk-style=
     mumamo-chunk-onjs=
     )))
@@ -232,6 +284,9 @@ This also covers inlined style and javascript."
     mumamo-chunk-onjs=
     )))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; eRuby
+
 ;;;###autoload
 (define-mumamo-multi-major-mode eruby-nxhtml-mumamo-mode
   "Turn on multiple major modes for eRuby with main mode `nxhtml-mode'.
@@ -244,17 +299,23 @@ This also covers inlined style and javascript."
     mumamo-chunk-onjs=
     )))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; ASP
+
 ;;;###autoload
 (define-mumamo-multi-major-mode asp-nxhtml-mumamo-mode
   "Turn on multiple major modes for ASP with main mode `nxhtml-mode'.
 This also covers inlined style and javascript."
   ("ASP nXhtml Family" nxhtml-mode
-   (mumamo-chunk-asp
+   (mumamo-chunk-asp%
     mumamo-asp-chunk-inlined-script
     mumamo-chunk-inlined-script
     mumamo-chunk-style=
     mumamo-chunk-onjs=
     )))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Mako
 
 ;;;###autoload
 (define-mumamo-multi-major-mode mako-nxhtml-mumamo-mode

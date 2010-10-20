@@ -1,6 +1,6 @@
 ;;; fupd.el --- Helper functions for updating files
-
-;; Author: Lennart Borgman <lennartDOTborgmanDOT073ATstudentDOTluDOTse>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Tue Feb 28 17:21:20 2006
 ;; Version: 0.1
 ;; Last-Updated: Tue Feb 20 21:09:20 2007 (3600 +0100)

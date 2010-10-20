@@ -139,7 +139,7 @@ Return cons of rx and regexp, both as strings."
             (setq res-regexp (eval (read rx-full-str))))
         (error (message "%s" (error-message-string err))
                (sit-for 2))))
-    (when (called-interactively-p) (message "%s => \"%s\"" rx-full-str res-regexp))
+    (when (with-no-warnings (called-interactively-p)) (message "%s => \"%s\"" rx-full-str res-regexp))
     (cons rx-full-str res-regexp)))
 
 

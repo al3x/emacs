@@ -1,8 +1,6 @@
 ;;; appmenu-fold.el --- Support form fold-dwim in AppMenu
-
-;; Copyright (C) 2006, 2007 by Lennart Borgman
-
-;; Author:  Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Wed Jan 11 21:48:02 2006
 (defconst appmenu-fold:version "0.51") ;; Version:
 ;; Last-Updated: Mon Jan 15 03:10:59 2007 (3600 +0100)

@@ -1,8 +1,6 @@
 ;;; html-upl.el --- Uploading of web sites
-
-;; Copyright (C) 2006, 2007 Lennart Borgman
-
-;; Author: Lennart Borgman <lennartDOTborgmanDOT073ATstudentDOTluDOTse>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Mon Mar 06 19:09:19 2006
 (defconst html-upl:version "0.3") ;; Version:
 ;; Last-Updated: 2008-03-22T01:23:01+0100 Sat
@@ -46,8 +44,9 @@
 ;;
 ;;; Code:
 (eval-when-compile (add-to-list 'load-path default-directory load-path))
-(eval-when-compile (require 'html-site))
+(eval-when-compile (require 'html-site nil t))
 
+;;;###autoload
 (defgroup html-upl nil
   "Customization group for html-upl."
   :group 'nxhtml)

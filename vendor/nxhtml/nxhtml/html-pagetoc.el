@@ -1,8 +1,6 @@
 ;;; html-pagetoc.el --- Insert/rebuild table of contents for html page
-
-;; Copyright (C) 2004 by Lennart Borgman
-
-;; Author:     Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2005-08-03
 ;; Last-Updated: Sat Apr 21 14:11:13 2007 (7200 +0200)
 (defconst html-pagetoc:version "0.85") ;; Version:
@@ -62,6 +60,7 @@
 ;;(define-key global-map [f2] 'eval-buffer)
 ;;(define-key global-map [f3] 'html-pagetoc-insert-toc)
 
+;;;###autoload
 (defgroup html-pagetoc nil
   "Html page local table of contents settings"
   :group 'nxhtml
@@ -149,9 +148,7 @@ maximum level of h1-h6 to include.  They should be integers."
 	)
     (setq html-pagetoc-min min-level)
     (setq html-pagetoc-max max-level)
-    (save-excursion
-      (set-buffer toc-buffer)
-      (erase-buffer))
+    (with-current-buffer toc-buffer (erase-buffer))
     (with-temp-buffer
       (insert-buffer-substring curr-buffer)
       ;;(replace-regexp "<!--.*?-->" "")
@@ -219,8 +216,7 @@ maximum level of h1-h6 to include.  They should be integers."
 	    (princ "\n"))
 	  (princ "</td></tr></table>\n")
 	  (princ html-pagetoc-end-cmnt)
-	  (save-excursion
-	    (set-buffer toc-buffer)
+	  (with-current-buffer toc-buffer
 	    (setq toc (buffer-string)))
 	  )
 	) ; save-excursion

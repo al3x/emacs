@@ -126,7 +126,7 @@
   "Mode for udev control buffer."
   (setq show-trailing-whitespace nil)
   (setq buffer-read-only t)
-  (nxhtml-minor-mode 1))
+  (nxhtml-menu-mode 1))
 
 ;;; Calling steps
 

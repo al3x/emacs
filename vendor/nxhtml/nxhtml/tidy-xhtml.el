@@ -6,8 +6,7 @@
 ;; Emacs Lisp Archive Entry
 ;; Ancestors filename: tidy.el
 ;; Author: Kahlil (Kal) HODGSON <dorge@tpg.com.au>
-;;     and Lennart Borgman
-;;         <lennart dot borgman dot 073 dot student dot lu dot se>
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Original X-URL: http://www.emacswiki.org/elisp/tidy.el
 ;; Last-Updated: 2008-03-09T13:10:06+0100 Sun
 (defconst tidy-xhtml:version "2.25")
@@ -194,9 +193,10 @@
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'ediff))
 (eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'ourcomments-util nil t))
 (eval-when-compile
   (add-to-list 'load-path default-directory))
-(eval-when-compile (require 'html-site))
+(eval-when-compile (require 'html-site nil t))
 (require 'easymenu) ;; This makes menus so much easier!
 (require 'compile)  ;; To make the error buffer more sexy
 (require 'cus-edit) ;; Just for face custom-button
@@ -225,6 +225,7 @@
 
 ;;;;; User Variables
 
+;;;###autoload
 (defgroup tidy nil
   "Provides a simple interface to the HTML Tidy program -- a free
 utility that can fix common errors in your mark-up and clean up
@@ -1257,7 +1258,7 @@ This option specifies if Tidy should line wrap text contained within
                                  'face '(:foreground "red"))
                                show)
             (insert (format "%25s => %s\n" opt show))))))
-    (print-help-return-message)))
+    (with-no-warnings (print-help-return-message))))
 
 (defun tidy-set-xhtml-options (&optional only-current-buffer)
   "Set option necessary to convert to XHTML.
@@ -1988,7 +1989,7 @@ Used to set up a Tidy menu in your favourite mode."
           (if value (insert value) (insert "set to the default value"))
           (insert "\n\n" (documentation-property variable 'variable-documentation))
           (local-set-key [(q)] 'tidy-quit-describe-options)
-          (print-help-return-message))))))
+          (with-no-warnings (print-help-return-message)))))))
 
 (defun tidy-quit-describe-options ()
   "Rid thyself of any display associated with Tidy's options."
@@ -2007,6 +2008,12 @@ Used to set up a Tidy menu in your favourite mode."
     (save-excursion
       (beginning-of-line)
       (1+ (count-lines 1 (point))))))
+
+(defun tidy-goto-line (line)
+  (save-restriction
+    (widen)
+    (goto-char (point-min))
+    (forward-line (1- line))))
 
 (defun tidy-describe-options ()
   "Interactively access documentation strings for `tidy-' variables."
@@ -2060,7 +2067,7 @@ Used to set up a Tidy menu in your favourite mode."
                 (insert "\n"))
            ((< count two-third-length) ;; third-length <= count < two-third-length
             (if (= count third-length)
-                (goto-line start-line)
+                (tidy-goto-line start-line)
               (forward-line 1))
             (end-of-line)
             (setq start (point))
@@ -2072,7 +2079,7 @@ Used to set up a Tidy menu in your favourite mode."
             (setq end (point)))
            (t                          ;; two-third-length <= count < length
             (if (= count two-third-length)
-                (goto-line start-line)
+                (tidy-goto-line start-line)
               (forward-line 1))
             (end-of-line)
             (setq start (point))
@@ -2115,8 +2122,7 @@ buffer local variables in all buffers."
       (let ((html-buffer (current-buffer))
             (config-buffer (find-file-noselect tidy-config-file t))
             config-variables)
-        (save-excursion
-          (set-buffer config-buffer)
+        (with-current-buffer config-buffer
           (goto-char (point-min)) ;; unnecessary but pedantic
 
           ;; delete all comments
@@ -2133,9 +2139,9 @@ buffer local variables in all buffers."
               (set-default (intern variable) value)
               (setq config-variables
                     (cons (cons variable value) config-variables))
-              (save-excursion
-                (set-buffer html-buffer)
-                (set (intern variable) value))))
+              (with-current-buffer html-buffer
+                (set (intern variable) value))
+	      ))
 
           (set-buffer-modified-p nil) ;; don't save changes
           (kill-buffer config-buffer))
@@ -2166,8 +2172,7 @@ The local values in the current buffer will be saved."
                 (option-alist tidy-options-alist)
                 (outer-buffer (current-buffer))
                 option name symbol value)
-            (save-excursion
-              (set-buffer buffer)
+            (with-current-buffer buffer
               (delete-region (point-min) (point-max)) ;; clear the buffer
 
               ;; need this line so that config file is always non empty
@@ -2176,8 +2181,7 @@ The local values in the current buffer will be saved."
                 (setq option-alist (cdr option-alist))
                 (setq name      (nth 0 option)
                       symbol    (intern (concat "tidy-" name)))
-                (save-excursion ;; this is a local variable
-                  (set-buffer outer-buffer)
+                (with-current-buffer outer-buffer
                   (setq value (symbol-value symbol)))
                 (when (string= value tidy-emacs-encoding-lbl)
                   (setq value (tidy-get-buffer-encoding)))
@@ -2252,6 +2256,8 @@ First column is Tidy's name, second Emacs' name."
       (error "Buffer does not contain tidied %s" orig-buf))))
 
 (defconst tidy-control-buffer-name "Tidy Control Buffer")
+
+(defvar tidy-output-encoding) ;; dyn var
 
 (defun tidy-buffer ()
   "Run the HTML Tidy program on the current buffer.
@@ -2360,7 +2366,8 @@ calling tidy."
 
       (let ((output-mode (if (not (featurep 'mumamo))
                              major-mode
-                           (if mumamo-multi-major-mode
+                           (if (and (boundp 'mumamo-multi-major-mode)
+                                    mumamo-multi-major-mode)
                                mumamo-multi-major-mode
                              major-mode))))
         (with-current-buffer output-buffer
@@ -2454,8 +2461,7 @@ calling tidy."
     ;;(if (file-exists-p config-file) (delete-file config-file))
 
     ;; scan the buffer for error strings
-    (save-excursion
-      (set-buffer error-buffer)
+    (with-current-buffer error-buffer
       ;;(local-set-key [tab] 'tidy-errbuf-forward)
       (goto-char (point-min))
       (insert "\n")
@@ -2568,8 +2574,7 @@ calling tidy."
       ;; Catch segmentation violations
       ;; Sometimes get this when editing files from Macs
       ;; See the function at the bottom of the file
-      (save-excursion
-        (set-buffer output-buffer)
+      (with-current-buffer output-buffer
         (goto-char (point-min))
         (let ((case-fold-search t))
           (if (looking-at "Segmentation") ;; might work with XEmacs

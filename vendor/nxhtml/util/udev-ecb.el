@@ -45,7 +45,7 @@
 ;;; Code:
 
 
-(eval-when-compile (require 'udev))
+(eval-when-compile (require 'udev nil t))
 
 (defgroup udev-ecb nil
   "Customization group for udev-ecb."

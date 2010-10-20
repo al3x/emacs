@@ -44,8 +44,8 @@
 ;;
 ;;; Code:
 
-(eval-when-compile (require 'nxhtml))
-(eval-when-compile (require 'nxhtml-mode))
+(eval-when-compile (require 'nxhtml nil t))
+(eval-when-compile (require 'nxhtml-mode nil t))
 
 (defun nxhtml-add-link (type src silent)
   ;;<script type="text/javascript" src="EmacsW32.js"></script>

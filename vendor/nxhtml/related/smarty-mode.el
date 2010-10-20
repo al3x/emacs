@@ -21,6 +21,8 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
+;; Minor changes by Lennart Borgman
+
 (defconst smarty-version "0.0.5"
   "Smarty Mode version number.")
 
@@ -37,14 +39,16 @@
   (require 'etags))
 (eval-when-compile
   (require 'regexp-opt))
-(when smarty-is-xemacs
+;;(when smarty-is-xemacs
   (require 'easymenu)
-  (require 'hippie-exp))
+  (require 'hippie-exp)
+;;)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Customization
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;###autoload
 (defgroup smarty nil
   "Customizations for Smarty mode."
   :prefix "smarty-"
@@ -499,7 +503,7 @@ The directory of the current source file is scanned."
   "Regexp for Smarty functions.")
 
 (defconst smarty-01-functions
-  '("capture" "config_load" "foreach" "foreachelse" "include" 
+  '("capture" "config_load" "foreach" "foreachelse" "include"
     "include_php" "insert" "if" "elseif" "else" "ldelim" "rdelim"
     "literal" "php" "section" "sectionelse" "strip" "assign" "counter"
     "cycle" "debug" "eval" "fetch" "html_checkboxes" "html_image"
@@ -532,7 +536,7 @@ The directory of the current source file is scanned."
     "formtool_init" "formtool_move" "formtool_moveall"
     "formtool_movedown" "formtool_moveup" "formtool_remove"
     "formtool_rename" "formtool_save" "formtool_selectall"
-    "paginate_first" "paginate_last" "paginate_middle" 
+    "paginate_first" "paginate_last" "paginate_middle"
     "paginate_next" "paginate_prev" "clipcache" "include_clipcache"
     "repeat" "str_repeat")
   "Smarty plugins functions.")
@@ -552,8 +556,8 @@ The directory of the current source file is scanned."
 	(regexp-opt
 	 '("TRUE" "FALSE" "NULL") t))
   "Smarty constants.")
-	   
-	
+
+
 ;; Syntax table creation
 (defvar smarty-mode-syntax-table nil
   "Syntax table for smarty-mode.")
@@ -565,7 +569,7 @@ The directory of the current source file is scanned."
   (if smarty-mode-syntax-table
       ()
     (setq smarty-mode-syntax-table (make-syntax-table))
-    
+
     ;; Make | a punctuation character
     (modify-syntax-entry ?| "." smarty-mode-syntax-table)
     ;; Make " a punctuation character so highlighing works withing html strings
@@ -889,6 +893,10 @@ Turn on if ARG positive, turn off if ARG negative, toggle if ARG zero or nil."
 ;;; Stuttering
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar smarty-end-comment-column 80)
+
+(defvar found) ;; silence compiler, dyn var
+
 (defun smarty-electric-tab (&optional prefix-arg)
   "If preceding character is part of a word or a paren then hippie-expand,
 else if right of non whitespace on line then insert tab,
@@ -928,31 +936,31 @@ else indent `correctly'."
     (setq rdelim-point (point-marker))
     (goto-char here)
   (cond ((and (= here ldelim-point) ldelim-found) (insert (concat "ldelim" smarty-right-delimiter)))
-	((and (= here rdelim-point) rdelim-found) 
+	((and (= here rdelim-point) rdelim-found)
 	 (re-search-backward (regexp-quote (concat " " smarty-right-delimiter)) nil t)
 	 (delete-char 1)
 	 (insert (concat " " smarty-left-delimiter "rdelim"))
 	 (goto-char here))
 	((smarty-in-comment-p)
 	 (self-insert-command count)
-	 (cond ((>= (current-column) (+ 2 end-comment-column))
+	 (cond ((>= (current-column) (+ 2 smarty-end-comment-column))
 		(backward-char 1)
 		(skip-chars-backward "^ \t\n")
 		(indent-new-comment-line)
 		(skip-chars-forward "^ \t\n")
 		(forward-char 1))
-	       ((>= (current-column) end-comment-column)
+	       ((>= (current-column) smarty-end-comment-column)
 		(indent-new-comment-line))
 	       (t nil)))
 	((or (and (>= (preceding-char) ?a) (<= (preceding-char) ?z))
 	     (and (>= (preceding-char) ?A) (<= (preceding-char) ?Z))
 	     (and (>= (preceding-char) ?0) (<= (preceding-char) ?9)))
-	 (progn 
+	 (progn
 	   (setq here (point-marker))
 	   (insert " ")
 	   (setq delete-a t)
 	   (if (re-search-backward "|" nil t)
-	       (progn 
+	       (progn
 		 (setq found (re-search-forward (regexp-quote "B2Smilies") here t))
 		 (if (and found (= here (point-marker)))
 		     (replace-match "btosmilies")
@@ -974,7 +982,7 @@ else indent `correctly'."
 	     (delete-char 1)))
 	(t (self-insert-command count)))))
 
-(defun smarty-electric-open-bracket (count) 
+(defun smarty-electric-open-bracket (count)
   "'(' --> '(', '((' --> '[', '[(' --> '{'"
   (interactive "p")
   (if (and smarty-stutter-mode (= count 1) (not (smarty-in-literal)))
@@ -985,7 +993,7 @@ else indent `correctly'."
 	  (insert-char ?\( 1)))
     (self-insert-command count)))
 
-(defun smarty-electric-close-bracket (count) 
+(defun smarty-electric-close-bracket (count)
   "')' --> ')', '))' --> ']', '])' --> '}'"
   (interactive "p")
   (if (and smarty-stutter-mode (= count 1) (not (smarty-in-literal)))
@@ -998,7 +1006,7 @@ else indent `correctly'."
 	(blink-matching-open))
     (self-insert-command count)))
 
-(defun smarty-electric-star (count) 
+(defun smarty-electric-star (count)
   "After a left delimiter add a right delemiter to close the comment"
   (interactive "p")
   (let ((here (point-marker)) found)
@@ -1172,7 +1180,7 @@ but not if inside a comment or quote)."
 	  (unexpand-abbrev)
 	  (backward-word 1)
 	  (delete-char 1))
-      (let ((invoke-char last-command-char)
+      (let ((invoke-char last-command-event)
 	    (abbrev-mode -1)
 	    (smarty-template-invoked-by-hook t))
 	(let ((caught (catch 'abort
@@ -1191,7 +1199,7 @@ but not if inside a comment or quote)."
 
 (defvar smarty-font-lock-keywords-1
   (list
-   
+
    ;; Fontify built-in functions
    (cons
 	(concat (regexp-quote smarty-left-delimiter) "[/]*" smarty-functions-regexp)
@@ -1201,15 +1209,15 @@ but not if inside a comment or quote)."
 	(concat "\\<\\(" smarty-constants "\\)\\>")
 	'font-lock-constant-face)
 
-   (cons (concat "\\(" (regexp-quote (concat smarty-left-delimiter "*")) "\\(\\s-\\|\\w\\|\\s.\\|\\s_\\|\\s(\\|\\s)\\|\\s\\\\)*" (regexp-quote (concat "*" smarty-right-delimiter)) "\\)") 
+   (cons (concat "\\(" (regexp-quote (concat smarty-left-delimiter "*")) "\\(\\s-\\|\\w\\|\\s.\\|\\s_\\|\\s(\\|\\s)\\|\\s\\\\)*" (regexp-quote (concat "*" smarty-right-delimiter)) "\\)")
 	 'font-lock-comment-face)
 
    )
-  "Subdued level highlighting for Smarty mode.") 
+  "Subdued level highlighting for Smarty mode.")
 
 (defconst smarty-font-lock-keywords-2
   (append
-   smarty-font-lock-keywords-1  
+   smarty-font-lock-keywords-1
    (list
 
 	;; Fontify variable names (\\sw\\|\\s_\\) matches any word character +
@@ -1220,12 +1228,12 @@ but not if inside a comment or quote)."
 	'("->\\(\\(?:\\sw\\|\\s_\\)+\\)\\s-*(" (1 font-lock-function-name-face t t)) ; ->function_call
 	'("\\<\\(\\(?:\\sw\\|\\s_\\)+\\s-*\\)(" (1 font-lock-function-name-face)) ; word(
 	'("\\<\\(\\(?:\\sw\\|\\s_\\)+\\s-*\\)[[]" (1 font-lock-variable-name-face)) ; word[
-	'("\\<[0-9]+" . default)			; number (also matches word)
+	'("\\<[0-9]+" . 'default)			; number (also matches word)
 
 	;; Fontify strings
 	;;'("\"\\([^\"]*\\)\"[^\"]+" (1 font-lock-string-face t t))
 	))
-  
+
    "Medium level highlighting for Smarty mode.")
 
 (defconst smarty-font-lock-keywords-3
@@ -1235,7 +1243,7 @@ but not if inside a comment or quote)."
     ;; Fontify modifiers
     (cons (concat "|\\(" smarty-modifiers-regexp "\\)[:|]+") '(1 font-lock-function-name-face))
     (cons (concat "|\\(" smarty-modifiers-regexp "\\)" (regexp-quote smarty-right-delimiter)) '(1 font-lock-function-name-face))
-    
+
     ;; Fontify config vars
     (cons (concat (regexp-quote smarty-left-delimiter) "\\(#\\(?:\\sw\\|\\s_\\)+#\\)") '(1 font-lock-constant-face))))
   "Balls-out highlighting for Smarty mode.")
@@ -1476,7 +1484,7 @@ Two internet address to download Smarty Mode :
 ------------------
 
 To install Smarty Mode you need to choose an installation directory
-(for example `/usr/local/share/lisp' or `c:\lisp'). The administrator
+\(for example `/usr/local/share/lisp' or `c:\lisp'). The administrator
 must have the write rights on this directory.
 
 With your favorite unzip software, unzip the archive in the
@@ -1490,7 +1498,7 @@ directory contains 2 files `smarty-mode.el' and `smarty-mode.elc' and
 another directory `docs' containing the documentation.
 
 You need to configure XEmacs. open you initialization file `init.el'
-(open the file or start XEmacs then choose the Options menu and Edit
+\(open the file or start XEmacs then choose the Options menu and Edit
 Init File). Add the following lines (the installation directory in
 this example is `/usr/local/share/lisp') :
 
@@ -1879,7 +1887,7 @@ For Smarty functions, see PDF or HTML documentation.
   (set (make-local-variable 'comment-start) (concat smarty-left-delimiter "*"))
   (set (make-local-variable 'comment-end) (concat "*" smarty-right-delimiter))
   (set (make-local-variable 'comment-multi-line) t)
-  (set (make-local-variable 'end-comment-column) 80)
+  (set (make-local-variable 'smarty-end-comment-column) 80)
 
   (make-local-variable 'font-lock-defaults)
   (if smarty-highlight-plugin-functions
@@ -1892,7 +1900,7 @@ For Smarty functions, see PDF or HTML documentation.
 		nil ; syntax-alist
 		nil ; syntax-begin
 		))
-  
+
   (setq font-lock-maximum-decoration t
 		case-fold-search t)
 
@@ -1903,8 +1911,8 @@ For Smarty functions, see PDF or HTML documentation.
   (easy-menu-define smarty-mode-menu smarty-mode-map
 		    "Menu keymap for Smarty Mode." smarty-mode-menu-list)
 
-  (message "Smarty Mode %s.%s" smarty-version
-	   (if noninteractive "" "  See menu for documentation and release notes."))
+  ;; (message "Smarty Mode %s.%s" smarty-version
+  ;;          (if noninteractive "" "  See menu for documentation and release notes."))
   (smarty-mode-line-update)
   (run-hooks 'smarty-mode-hook))
 

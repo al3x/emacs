@@ -46,20 +46,19 @@
 ;;
 ;;; Code:
 
-(defvar tyda-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(alt mouse-1)] 'tyda-lookup-word)
-    (define-key map [(control ?c) ?.] 'tyda-lookup-word)
-    map))
+(eval-when-compile (require 'appmenu))
 
-;;;###autoload
 (defun tyda-lookup-word (word)
   "Look up word WORD at URL `http://tyda.se/'.
 This site translates between English and Swedish.  The site will
 be opened in your webbrowser with WORD looked up."
   (interactive (list (or (thing-at-point 'word)
                          (read-string "Lookup word: "))))
-  (browse-url (concat "http://www.tyda.se/?rid=651940&w=" word)))
+  ;; http://tyda.se/search?form=1&w=weird&w_lang=&x=0&y=0
+  (browse-url
+   ;;(concat "http://www.tyda.se/?rid=651940&w=" word)
+   (format "http://tyda.se/search?form=1&w=%s&w_lang=&x=0&y=0" word)
+   ))
 
 (defvar tyda-appmenu-map
   (let ((map (make-sparse-keymap)))
@@ -68,6 +67,13 @@ be opened in your webbrowser with WORD looked up."
             'tyda-lookup-word))
     map))
 
+(defvar tyda-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(alt mouse-1)] 'tyda-lookup-word)
+    (define-key map [(control ?c) ?=] 'tyda-lookup-word)
+    map))
+
+;;;###autoload
 (define-minor-mode tyda-mode
   "Minor mode for key bindings for `tyda-lookup-word'.
 It binds Alt-Mouse-1 just as the Tyda add-on does in Firefox.
@@ -75,7 +81,7 @@ Here are all key bindings
 
 \\{tyda-mode-map}
 "
-  :lighter " Tyda"
+  :global t
   (if tyda-mode
       (progn
         (require 'appmenu nil t)

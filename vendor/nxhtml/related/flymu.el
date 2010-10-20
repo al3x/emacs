@@ -48,6 +48,7 @@
 
 (require 'flymake)
 
+;;(flymu-make-major-mode-alist)
 (defun flymu-make-major-mode-alist ()
   "Grab values from `flymake-allowed-file-name-masks'.
 We need a list of major modes and the corresponding init and
@@ -118,7 +119,8 @@ from flymakes dito list for file names."
   :group 'flymu)
 
 (defvar flymu-mumamo-chunk nil)
-(make-variable-buffer-local 'flymo-mumamo-chunk)
+(make-variable-buffer-local 'flymu-mumamo-chunk)
+
 
 ;; Fix-me: What to check? When? Make flymu-mumamo-chunk a function
 ;; instead? Mark chunks for checking - let mumamo do that? Flymake
@@ -126,9 +128,9 @@ from flymakes dito list for file names."
 ;; line. What about line numbers?
 
 ;; Advice these functions:
-(defadvice flymake-get-file-name-mode-and-masks
-  (around flymu-get-file-name-mode-and-masks
-          (file-name))
+(defadvice flymake-get-file-name-mode-and-masks (around
+                                                 flymu-ad-flymake-get-file-name-mode-and-masks
+                                                 (file-name))
   "Make flymake init file selection according to mode."
   (if flymu-mumamo-chunk
       (let ((major (overlay-get ovl 'mumamo-major-mode))
@@ -139,9 +141,9 @@ from flymakes dito list for file names."
 (ad-activate 'flymake-get-file-name-mode-and-masks)
 
 ;;(defun flymake-save-buffer-in-file (file-name)
-(defadvice flymake-save-buffer-in-file
-  (around flymu-save-buffer-in-file
-          (file-name))
+(defadvice flymake-save-buffer-in-file (around
+                                        flymu-ad-flymake-save-buffer-in-file
+                                        (file-name))
   (if flymu-mumamo-chunk
       (let ((min (overlay-start flymu-mumamo-chunk))
             (max (overlay-end   flymu-mumamo-chunk)))

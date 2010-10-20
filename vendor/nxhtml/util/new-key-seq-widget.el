@@ -53,6 +53,7 @@
 ;;; Code:
 
 (require 'wid-edit)
+(require 'edmacro)
 
 ;;; I'm not sure about what this is good for?  KFS.
 ;;
@@ -214,13 +215,15 @@ If 0-7 is pressed then code for an event is prompted for."
       (setq unread-command-events (cons ev unread-command-events)
             ev (read-quoted-char (format "Enter code (radix %d)" read-quoted-char-radix))
             tr nil)
-      (if (and (integerp ev) (not (char-valid-p ev)))
+      (if (and (integerp ev) (not (characterp ev)))
           (insert (char-to-string ev))))  ;; throw invalid char error
     (setq ev (key-description (list ev)))
     (when (arrayp tr)
       (setq tr (key-description (list (aref tr 0))))
-      (if (y-or-n-p (format "Key %s is translated to %s -- use %s? " ev tr tr))
-          (setq ev tr ev2 nil)))
+      (when (y-or-n-p (format "Key %s is translated to %s -- use %s? " ev tr tr))
+	(setq ev tr)
+	;;(setq ev2 nil)
+	))
     (insert ev " ")
     (when (or (string-match "mouse-" ev)
               (string-match "menu-bar" ev)
@@ -301,8 +304,9 @@ representation of it. A warning is also shown then."
 ;; (customize-option 'new-key-seq-widget-test)
 (defcustom new-key-seq-widget-test []
   "Testing only!"
-  :type 'key-sequence)
+  :type 'key-sequence
+  :group 'widgets)
 
-(provide 'new-key-seq-widget)
+ (provide 'new-key-seq-widget)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; new-key-seq-widget.el ends here

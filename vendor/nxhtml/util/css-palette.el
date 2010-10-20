@@ -409,8 +409,7 @@ found at URL `http://colourlovers.com'."
 				  (buffer-substring-no-properties gb ge)
 				  (buffer-substring-no-properties bb be)))
 			 (list (buffer-substring-no-properties nb ne))))))
-	    (save-excursion
-	      (set-buffer this-buffer)
+	    (with-current-buffer this-buffer
 	      (insert color))))))
     (insert ")")
     (message "C-c C-c to update colors")))

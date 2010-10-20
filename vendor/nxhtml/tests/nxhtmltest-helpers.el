@@ -47,6 +47,12 @@
 (eval-when-compile (require 'cl))
 (require 'ert2)
 
+(defun nxhtmltest-goto-line (line)
+  (save-restriction
+    (widen)
+    (goto-char (point-min))
+    (forward-line (1- line))))
+
 (defun nxhtmltest-mumamo-error-messages ()
   (ert-get-messages "^MU:MuMaMo error"))
 
@@ -84,6 +90,7 @@
           '(
             ("Fontify as usual (wait)" fontify-as-usual)
             ("Fontify by calling timer handlers" fontify-w-timer-handlers)
+            ("Fontify ps print " fontify-as-ps-print)
             ("Call fontify-buffer" fontify-buffer)
             ))
          (hist (mapcar (lambda (rec)
@@ -96,7 +103,8 @@
                                            'hist))))
     (setq nxhtmltest-default-fontification-method
           ;;(nth 1 (assoc method-name collection))
-          'fontify-w-timer-handlers
+          ;;'fontify-w-timer-handlers
+          'fontify-as-ps-print
           )))
 
 (defun nxhtmltest-fontify-as-usual (seconds prompt-mark)
@@ -112,6 +120,21 @@
       (timer-event-handler timer))
     (redisplay t))
 
+(declare-function jit-lock-fontify-now "jit-lock" (&optional start end))
+(declare-function lazy-lock-fontify-region "lazy-lock" (beg end))
+
+;; to avoid compilation gripes
+;;(defun ps-print-ensure-fontified (start end)
+(defun nxhtmltest-fontify-as-ps-print()
+  (save-restriction
+    (widen)
+    (let ((start (point-min))
+          (end   (point-max)))
+      (cond ((and (boundp 'jit-lock-mode) (symbol-value 'jit-lock-mode))
+             (jit-lock-fontify-now start end))
+            ((and (boundp 'lazy-lock-mode) (symbol-value 'lazy-lock-mode))
+             (lazy-lock-fontify-region start end))))))
+
 (defun nxhtmltest-fontify-buffer ()
   (font-lock-fontify-buffer)
   (redisplay t))
@@ -121,6 +144,7 @@
   (case nxhtmltest-default-fontification-method
     (fontify-as-usual         (nxhtmltest-fontify-as-usual seconds pmark))
     (fontify-w-timer-handlers (nxhtmltest-fontify-w-timers-handlers))
+    (fontify-as-ps-print      (nxhtmltest-fontify-as-ps-print))
     (fontify-buffer           (nxhtmltest-fontify-buffer))
     (t (error "Unrecognized default fontification method: %s"
               nxhtmltest-default-fontification-method))))

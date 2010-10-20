@@ -44,6 +44,12 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(eval-when-compile (require 'loadhist))
+(eval-when-compile (require 'nxhtml-base))
+(eval-and-compile (require 'nxhtml-menu nil t))
+
+;;;###autoload
 (defgroup nxhtml nil
   "Customization of `nxhtml-mode'."
   :group 'nxml)
@@ -96,13 +102,13 @@
            (hfyview      "Print with browser/copy to html" "hfyview.el" "0.63")
            (mozadd       "Mirroring in Firefox" "mozadd.el" "0.2")
            "Images and Colors"
-           (gimp         "Edit images with GIMP" "gimp.el" "0.2")
+           (gimpedit     "Edit images with GIMP" "gimp.el" "0.3")
            (inlimg       "Inline images" "inlimg.el" "0.7")
 	   (css-color 	 "Css color help functions" "css-color.el" "0.02")
            (chart        "Easy google charts" "chart.el" "0.2")
            "Fetching and using elisp from repositories"
            (udev         "Fetch and from elisp repostories" "udev.el" "0.5")
-           (udev-cedet   "CEDET fetcher and loader" "udev-cedet.el" "0.2")
+           ;;(udev-cedet   "CEDET fetcher and loader" "udev-cedet.el" "0.2")
            (udev-ecb     "ECB fetcher and loader" "udev-ecb.el" "0.2")
            (udev-rinari  "Rinari fetcher and loader" "udev-rinari.el" "0.2")
            "Games and life"
@@ -198,7 +204,7 @@
   (with-output-to-temp-buffer (help-buffer)
     (help-setup-xref (list #'nxhtml-features-check) (interactive-p))
     (with-current-buffer (help-buffer)
-      (nxhtml-minor-mode 1)
+      (nxhtml-menu-mode 1)
       (erase-buffer)
       (let ((s (concat "Elisp modules used by nXhtml version " nxhtml-menu:version ":")))
         (put-text-property 0 (length s)

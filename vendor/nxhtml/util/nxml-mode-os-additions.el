@@ -56,7 +56,7 @@
 ;;; Code:
 
 (require 'nxml-mode)
-(require 'rng-valid)
+(eval-and-compile (require 'rng-valid))
 
 (defun rng-mode-os-additions-set-key-bindings ()
   (define-key nxml-mode-map "\C-c\C-s\C-r" 'rng-reload-schema-file)

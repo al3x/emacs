@@ -65,7 +65,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'windmove))
+(eval-when-compile (require 'view))
 (eval-when-compile (require 'winsav nil t))
+(eval-when-compile (require 'ourcomments-widgets))
+(eval-when-compile (require 'ring))
 
 ;;; Custom variables
 
@@ -108,25 +111,6 @@ makes the mouse jump a few times."
 
 (defvar widget-command-prompt-value-history nil
   "History of input to `widget-function-prompt-value'.")
-
-(define-widget 'command 'restricted-sexp
-  "A Lisp function."
-  :complete-function (lambda ()
-                       (interactive)
-                       (lisp-complete-symbol 'commandp))
-  :prompt-value 'widget-field-prompt-value
-  :prompt-internal 'widget-symbol-prompt-internal
-  :prompt-match 'commandp
-  :prompt-history 'widget-command-prompt-value-history
-  :action 'widget-field-action
-  :match-alternatives '(commandp)
-  :validate (lambda (widget)
-              (unless (commandp (widget-value widget))
-                (widget-put widget :error (format "Invalid command: %S"
-                                                  (widget-value widget)))
-                widget))
-  :value 'ignore
-  :tag "Command")
 
 (defvar winsize-keymap nil
   "Keymap used by `resize-windows'.")
@@ -1009,6 +993,7 @@ should be one of 'left, 'up, 'right and 'down."
 
 ;;; User feedback
 
+;;;###autoload
 (defun winsize-set-mode-line-colors (on)
   "Turn mode line colors on if ON is non-nil, otherwise off."
   (if on
@@ -1141,7 +1126,48 @@ should be one of 'left, 'up, 'right and 'down."
     (message "%s" winsize-short-help-message)))
 
 
-(provide 'winsize)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Window rotating and mirroring
 
+;;;###autoload
+(defun winsav-rotate (mirror transpose)
+  "Rotate window configuration on selected frame.
+MIRROR should be either 'mirror-left-right, 'mirror-top-bottom or
+nil.  In the first case the window configuration is mirrored
+vertically and in the second case horizontally.  If MIRROR is nil
+the configuration is not mirrored.
+
+If TRANSPOSE is non-nil then the window structure is transposed
+along the diagonal from top left to bottom right (in analogy with
+matrix transosition).
+
+If called interactively MIRROR will is 'mirror-left-right by
+default, but 'mirror-top-bottom if called with prefix.  TRANSPOSE
+is t. This mean that the window configuration will be turned one
+quarter clockwise (or counter clockwise with prefix)."
+  (interactive (list
+                (if current-prefix-arg
+                    'mirror-left-right
+                  'mirror-top-bottom)
+                t))
+  (require 'winsav)
+  (let* ((wintree (winsav-get-window-tree))
+         (tree (cadr wintree))
+         (win-config (current-window-configuration)))
+    ;;(winsav-log "old-wintree" wintree)
+    (winsav-transform-1 tree mirror transpose)
+    ;;(winsav-log "new-wintree" wintree)
+    ;;
+    ;; Fix-me: Stay in corresponding window. How?
+    (delete-other-windows)
+    (condition-case err
+        (winsav-put-window-tree wintree (selected-window))
+      (error
+       (set-window-configuration win-config)
+       (message "Can't rotate: %s" (error-message-string err))))
+    ))
+
+
+(provide 'winsize)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; winsize.el ends here

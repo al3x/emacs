@@ -46,6 +46,13 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile
+  (let* ((this-file (or load-file-name
+                        (when (boundp 'bytecomp-filename) bytecomp-filename)
+                        buffer-file-name))
+         (this-dir (file-name-directory this-file))
+         (load-path (cons this-dir load-path)))
+    (require 'ert2)))
 
 (setq debug-on-error t)
 
@@ -54,8 +61,6 @@
 
 (pushnew emacstest-bin load-path)
 
-
-(require 'ert2)
 
 
 (defvar emacstest-files-root

@@ -2,15 +2,15 @@
 ;;
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2008-09-27T15:29:35+0200 Sat
-;; Version: 0.5
-;; Last-Updated: 2009-12-30 Tue
+;; Version: 0.6
+;; Last-Updated: 2010-01-18 Mon
 ;; URL:
 ;; Keywords:
 ;; Compatibility:
 ;;
 ;; Features that might be required by this library:
 ;;
-;;   Cannot open load file: nxhtmlmaint.
+;;   None
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -50,10 +50,17 @@
 ;;
 ;;; Code:
 
-;;(eval-when-compile (require 'ourcomments-util))
+(eval-when-compile (require 'advice))
+(eval-when-compile (require 'nxhtml-base))
+(eval-when-compile (require 'nxhtml-web-vcs nil t))
+(eval-when-compile (require 'web-vcs nil t))
+(eval-when-compile (require 'ourcomments-util))
 
 (defvar nxhtmlmaint-dir
-  (file-name-directory (if load-file-name load-file-name buffer-file-name))
+  ;;(file-name-directory (if load-file-name load-file-name buffer-file-name))
+  (file-name-directory (or load-file-name
+                           (when (boundp 'bytecomp-filename) bytecomp-filename)
+                           buffer-file-name))
   "Maintenance directory for nXhtml.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -79,7 +86,9 @@
       (insert ";; Autoloads for nXthml
 ;;
 ;; This file should be updated by `nxhtmlmaint-get-file-autoloads',
-;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.")
+;; `nxhtmlmaint-get-dir-autoloads' or `nxhtmlmaint-get-all-autoloads'.
+\(eval-when-compile (require 'nxhtml-base))
+\(eval-when-compile (require 'web-vcs))")
     (basic-save-buffer))))
 
 (defun nxmtmlmaint-advice-autoload (on)
@@ -136,6 +145,7 @@ Update nXhtml autoload file with them."
          (sub-dirs (mapcar (lambda (file)
                              (when (and (not (member file '("." "..")))
                                         (not (member file '("nxml-mode-20041004" "old")))
+                                        (not (member file '("nxhtml-company-mode")))
                                         (not (member file '("in")))
                                         (file-directory-p (expand-file-name file root)))
                                file))
@@ -153,38 +163,100 @@ Update nXhtml autoload file with them."
   "Get all autoloads for nXhtml.
 Update nXhtml autoload file with them."
   ;;(interactive)
-  (let ((auto-buf (find-file-noselect (nxhtmlmaint-autoloads-file))))
-    (with-current-buffer auto-buf
-      (erase-buffer)
-      (basic-save-buffer))
-    (nxhtmlmaint-get-tree-autoloads nxhtmlmaint-dir)
-    ;; `nxhtml-mode' and `nxhtml-validation-header-mode' should only be
-    ;; autoloaded if nxml-mode if available.
-    (with-current-buffer auto-buf
-      (message "Fixing nxml autoloads")
-      (let ((frmt (if (= emacs-major-version 22)
-                      "^(autoload (quote %s) "
+  (if nxhtml-autoload-web
+      (message "Skipping rebuilding autoloads, not possible when autoloading from web")
+    (let ((auto-buf (find-file-noselect (nxhtmlmaint-autoloads-file))))
+      (with-current-buffer auto-buf
+        (erase-buffer)
+        (basic-save-buffer))
+      (nxhtmlmaint-get-tree-autoloads nxhtmlmaint-dir)
+      ;; `nxhtml-mode' and `nxhtml-validation-header-mode' should only be
+      ;; autoloaded if nxml-mode if available.
+      (with-current-buffer auto-buf
+        (message "Fixing nxml autoloads")
+        (let ((frmt (if (= emacs-major-version 22)
+                        "^(autoload (quote %s) "
                       "^(autoload '%s ")))
-        (dolist (nxmode '(nxhtml-mode nxhtml-validation-header-mode))
-          (goto-char (point-min))
-          (when (re-search-forward (format frmt nxmode) nil t)
-            (forward-line 0)
-            (insert "(when (fboundp 'nxml-mode)\n")
-            (forward-sexp)
-            (insert ")"))))
-      ;; Fix defcustom autoloads
-      (goto-char (point-min))
-      (let ((cus-auto "(custom-autoload "))
-        (while (search-forward cus-auto nil t)
-          (backward-char (1- (length cus-auto)))
-          (insert "nxhtml-")))
-      ;; Save
-      (basic-save-buffer))))
+          (dolist (nxmode '(nxhtml-mode nxhtml-validation-header-mode))
+            (goto-char (point-min))
+            (when (re-search-forward (format frmt nxmode) nil t)
+              (forward-line 0)
+              (insert "(when (fboundp 'nxml-mode)\n")
+              (forward-sexp)
+              (insert ")"))))
+        ;; Fix defcustom autoloads
+        (goto-char (point-min))
+        (let ((cus-auto "(\\(custom-autoload\\) +'.* +\\(\".*?\"\\)"))
+          (while (re-search-forward cus-auto nil t)
+            ;;(backward-char (1- (length cus-auto)))
+            ;;(insert "nxhtml-")
+            (let ((lib (match-string 2)))
+              ;; Change to symbol to fix autoloading. This works because
+              ;; custom-load-symbol does require on symbols.
+              (setq lib (concat "'" (substring lib 1 -1)))
+              (replace-match "nxhtml-custom-autoload" t t nil 1)
+              (replace-match lib t t nil 2))))
+        ;; Fix autoload calls
+        (goto-char (point-min))
+        (let ((auto "(autoload "))
+          (while (search-forward auto nil t)
+            (backward-char (1- (length auto)))
+            (insert "nxhtml-")))
+        ;; Fix autoload source
+        (goto-char (point-min))
+        (let* ((patt-src "^;;; Generated autoloads from \\(.*\\)$")
+               (patt-auto "^(nxhtml-autoload '[^ ]+ \\(\"[^\"]+\"\\)")
+               (patt-cust "^(nxhtml-custom-autoload '[^ ]+ \\(\"[^\"]+\"\\)")
+               (patt (concat "\\(?:" patt-src "\\)\\|\\(?:" patt-auto "\\)\\|\\(?:" patt-cust "\\)"))
+               curr-src)
+          (while (re-search-forward patt nil t)
+            (cond
+             ( (match-string 1)
+               (setq curr-src (match-string-no-properties 1))
+               ;; Remove .el
+               (setq curr-src (substring curr-src 0 -3))
+               ;; Setup up for web autoload
+               (let* ((src-name (file-name-nondirectory curr-src))
+                      (feature (make-symbol src-name))
+                      )
+                 (end-of-line)
+                 (insert "\n"
+                         "(web-autoload-require '"
+                         (symbol-name feature)
+                         " 'lp"
+                         " '(nxhtml-download-root-url nil)"
+                         " \"" curr-src "\""
+                         " nxhtml-install-dir"
+                         " 'nxhtml-byte-compile-file"
+                         ")\n"))
+               )
+             ( (match-string 3)
+               ;; (custom-autoload 'sym "lib" nil) is will give a
+               ;; (require 'lib) so everything is ok here.
+               nil)
+             ( (or (match-string 2)
+                   (match-string 3)
+                   )
+               (let* ((subexp (if (match-string 2) 2 3))
+                      (file (match-string-no-properties subexp)))
+                 (replace-match (concat "`(lp '(nxhtml-download-root-url nil)"
+                                        " \"" curr-src "\""
+                                        " nxhtml-install-dir)")
+                                nil ;; fixedcase
+                                nil ;; literal
+                                nil ;; string
+                                subexp   ;; subexp
+                                ))
+               )
+             (t (error "No match???")))))
+        ;; Save
+        (basic-save-buffer)))))
 
 
 (defun nxhtmlmaint-autoload-file-load-name (file)
   "Return relative file name for FILE to autoload file directory."
-  (let ((name (if nxhtmlmaint-autoload-default-directory
+  (let ((name (if (and nxhtmlmaint-autoload-default-directory
+                       (file-name-absolute-p file))
                   (file-relative-name
                    file nxhtmlmaint-autoload-default-directory)
                 (file-name-nondirectory file))))
@@ -246,19 +318,24 @@ You must restart Emacs to use the byte compiled files.
 If for some reason the byte compiled files does not work you can
 remove then with `nxhtmlmaint-byte-uncompile-all'."
   (interactive)
-  (let* ((this-file (expand-file-name "nxhtmlmaint.el" nxhtmlmaint-dir))
-         (auto-file (expand-file-name "autostart.el" nxhtmlmaint-dir))
+  ;; Fix-me: This message and redisplay seems only necessary sometimes.
+  (message "Preparing byte compilation of nXhtml ...") (redisplay t)
+  (let* ((this-file    (expand-file-name "nxhtmlmaint.el" nxhtmlmaint-dir))
+         (auto-file    (expand-file-name "autostart.el" nxhtmlmaint-dir))
+         (web-vcs-file (expand-file-name "nxhtml-web-vcs.el" nxhtmlmaint-dir))
          (this-emacs (locate-file invocation-name
                                   (list invocation-directory)
                                   exec-suffixes))
          (process-args `(,this-emacs nil 0 nil "-Q")))
     (nxhtmlmaint-byte-uncompile-all)
-    (if noninteractive
+    (if (or noninteractive
+            (not window-system))
         (nxhtmlmaint-byte-compile-all)
       ;;(when noninteractive (setq process-args (append process-args '("-batch"))))
       (setq process-args (append process-args
-                                 (list "-l" this-file
-                                       "-l" auto-file
+                                 (list "-l" auto-file
+                                       "-l" web-vcs-file
+                                       "-l" this-file
                                        "-f" "nxhtmlmaint-byte-compile-all")))
       (message "process-args=%S" process-args)
       (message "Starting new Emacs instance for byte compiling ...")
@@ -267,6 +344,7 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
 ;;(nxhtmlmaint-byte-compile-all)
 (defun nxhtmlmaint-byte-compile-all ()
   "Byte recompile all files in nXhtml that needs it."
+  (message "nxhtmlmaint-byte-compile-all: nxhtmlmaint-dir=%S, exists=%s" nxhtmlmaint-dir (file-directory-p nxhtmlmaint-dir))
   (let* ((load-path load-path)
          (nxhtml-dir (file-name-as-directory
                       (expand-file-name "nxhtml"
@@ -274,6 +352,9 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
          (util-dir (file-name-as-directory
                     (expand-file-name "util"
                                       nxhtmlmaint-dir)))
+         ;; (nxhtml-company-dir (file-name-as-directory
+         ;;                      (expand-file-name "nxhtml-company-mode"
+         ;;                                        util-dir)))
          (related-dir (file-name-as-directory
                        (expand-file-name "related"
                                          nxhtmlmaint-dir)))
@@ -283,17 +364,31 @@ remove then with `nxhtmlmaint-byte-uncompile-all'."
          (emacsw32-dir (file-name-as-directory
                         (expand-file-name "../lisp"
                                           nxhtmlmaint-dir)))
+         (default-dir nxhtml-dir)
          )
+    (message "nxhtmlmaint-byte-compile-all: nxhtml-dir=%S, exists=%s" nxhtml-dir (file-directory-p nxhtml-dir))
+    (message "nxhtmlmaint-byte-compile-all: util-dir=%S, exists=%s" util-dir (file-directory-p util-dir))
+    (message "nxhtmlmaint-byte-compile-all: related-dir=%S, exists=%s" related-dir (file-directory-p related-dir))
+    (message "nxhtmlmaint-byte-compile-all: tests-dir=%S, exists=%s" tests-dir (file-directory-p tests-dir))
     (add-to-list 'load-path nxhtml-dir)
     (add-to-list 'load-path util-dir)
+    ;;(add-to-list 'load-path nxhtml-company-dir)
     (add-to-list 'load-path related-dir)
     (add-to-list 'load-path tests-dir)
     (when (file-directory-p emacsw32-dir)
       (add-to-list 'load-path emacsw32-dir))
-    (require 'cl) ;; This is run in a new Emacs
+    (require 'cl) ;; This is run in a new Emacs. Fix-me: This might not be true any more.
+    (message "load-path=%s" load-path)
     (let ((dummy-debug-on-error t))
-      (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil))
-    (message "Byte compiling is ready, restart Emacs to use the compiled files")))
+      (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil nil))
+    (web-vcs-message-with-face 'web-vcs-gold "Byte compiling nXhtml is ready, restart Emacs to use the compiled files")))
+
+;;;###autoload
+(defun nxhtmlmaint-byte-recompile ()
+  "Recompile or compile all nXhtml files in current Emacs."
+  (interactive)
+  (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir nil nil t)
+  (web-vcs-message-with-face 'web-vcs-gold "Byte recompiling nXhtml ready"))
 
 ;;;###autoload
 (defun nxhtmlmaint-byte-uncompile-all ()
@@ -304,13 +399,14 @@ See `nxhtmlmaint-start-byte-compilation' for byte compiling."
   (interactive)
   (nxhtmlmaint-get-all-autoloads)
   (let ((dummy-debug-on-error t))
-    (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir t t))
+    (nxhtmlmaint-byte-compile-dir nxhtmlmaint-dir t t nil))
   (message "Byte uncompiling is ready, restart Emacs to use the elisp files"))
 
-(defconst nxhtmlmaint-nonbyte-compile-dirs '("." ".." "alts" "nxml-mode-20041004" "old" "tests"))
+(defconst nxhtmlmaint-nonbyte-compile-dirs
+  '("." ".." "alts" "nxml-mode-20041004" "old" "tests" "nxhtml-company-mode"))
 
 ;; Fix-me: simplify this now that nxml is not included
-(defun nxhtmlmaint-byte-compile-dir (dir force del-elc)
+(defun nxhtmlmaint-byte-compile-dir (dir force del-elc load)
   "Byte compile or uncompile directory tree DIR.
 If FORCE is non-nil byte recompile the elisp file even if the
 compiled file is newer.
@@ -328,17 +424,16 @@ then instead delete the compiled files."
         (when (or force (file-newer-than-file-p el-src elc-dst))
           ;;(message "fn=%s" (file-name-nondirectory el-src))
           (when t ;;(string= "nxhtml-menu.el" (file-name-nondirectory el-src))
-            (message "(byte-compile-file %s)" el-src)
-            (unless (byte-compile-file el-src)
-              (message "Couldn't compile %s" el-src))
-            )
-          ))))
+            ;;(message "(nxhtml-byte-compile-file %s)" el-src)
+            (unless (nxhtml-byte-compile-file el-src load)
+              (message "Couldn't compile %s" el-src)))))))
   (dolist (f (directory-files dir t))
     (when (file-directory-p f)
       ;; Fix-me: Avoid some dirs
       (let ((name (file-name-nondirectory f)))
         (unless (member name nxhtmlmaint-nonbyte-compile-dirs)
-          (nxhtmlmaint-byte-compile-dir f force del-elc))))))
+          (nxhtmlmaint-byte-compile-dir f force del-elc load))))))
 
+(provide 'nxhtmlmaint)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; nxhtmlmaint.el ends here

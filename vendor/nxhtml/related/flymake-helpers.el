@@ -44,6 +44,8 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'flymake))
+
 ;; (flymake-create-temp-intemp buffer-file-name nil)
 (defun flymake-create-temp-intemp (file-name prefix)
   "Return file name in temporary directory for checking FILE-NAME.
@@ -71,6 +73,6 @@ makes)."
     temp-name))
 
 
-
+(provide 'flymake-helpers)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; flymake-helpers.el ends here

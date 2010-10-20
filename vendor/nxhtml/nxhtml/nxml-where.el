@@ -49,12 +49,14 @@
 ;; then enter the text in that file's own buffer.
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'mumamo))
-(eval-when-compile
-  (unless (featurep 'nxhtml-autostart)
-    (let ((efn (expand-file-name "../autostart.el")))
-      (load efn))
-    (require 'nxml-mode)))
+(eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'nxml-mode nil t))
+(eval-when-compile (require 'ourcomments-util nil t))
+;; (eval-when-compile
+;;   (unless (featurep 'nxhtml-autostart)
+;;     (let ((efn (expand-file-name "../autostart.el")))
+;;       (load efn))
+;;     (require 'nxml-mode)))
 
 (defun nxml-where-error-message (format-string &rest args)
   (with-current-buffer (get-buffer-create "*Messages*")
@@ -106,51 +108,76 @@ This is a list where the records have the form
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Custom options
 
+;;;###autoload
 (defgroup nxml-where nil
   "Customization group for nxml-where."
   :group 'nxhtml
   :group 'nxml)
 
-(define-toggle nxml-where-only-inner nil
+;;(define-toggle nxml-where-only-inner nil
+(define-minor-mode nxml-where-only-inner
   "Mark only inner-most tag."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when (fboundp 'nxml-where-update-buffers)
-           (nxml-where-update-buffers)))
-  :group 'nxml-where)
+  :global t
+  :group 'nxml-where
+  (when (fboundp 'nxml-where-update-buffers)
+    (nxml-where-update-buffers)))
 
-(define-toggle nxml-where-header t
+(defun nxml-where-only-inner-toggle ()
+  "Toggle `nxml-where-only-inner'."
+  (interactive)
+  (nxml-where-only-inner (if nxml-where-only-inner -1 1)))
+
+;;(define-toggle nxml-where-header t
+(define-minor-mode nxml-where-header
   "Show header with XML-path if non-nil."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when (fboundp 'nxml-where-update-buffers)
-           (nxml-where-update-buffers)))
-  :group 'nxml-where)
+  :global t
+  :init-value t
+  :group 'nxml-where
+  (when (fboundp 'nxml-where-update-buffers)
+    (nxml-where-update-buffers)))
 
-(define-toggle nxml-where-tag+id t
+(defun nxml-where-header-toggle ()
+  "Toggle `nxml-where-header'."
+  (interactive)
+  (nxml-where-header (if nxml-where-header -1 1)))
+
+;;(define-toggle nxml-where-tag+id t
+(define-minor-mode nxml-where-tag+id
   "Show tags + id in path if non-nil.
 If nil show only tag names."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when (fboundp 'nxml-where-update-buffers)
-           (nxml-where-update-buffers)))
-  :group 'nxml-where)
+  :global t
+  :init-value t
+  :group 'nxml-where
+  (when (fboundp 'nxml-where-update-buffers)
+    (nxml-where-update-buffers)))
 
-(define-toggle nxml-where-marks t
+(defun nxml-where-tag+id-toggle ()
+  "Toggle `nxml-where-tag+id'."
+  (interactive)
+  (nxml-where-tag+id (if nxml-where-tag+id -1 1)))
+
+;;(define-toggle nxml-where-marks t
+(define-minor-mode nxml-where-marks
   "Show marks in buffer for XML-path if non-nil."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when (fboundp 'nxml-where-update-buffers)
-           (nxml-where-update-buffers)))
-  :group 'nxml-where)
+  :global t
+  :init-value t
+  :group 'nxml-where
+  (when (fboundp 'nxml-where-update-buffers)
+    (nxml-where-update-buffers)))
 
-(define-toggle nxml-where-only-tags-with-id t
-  "Show only tags with id in the header line."
-  :set (lambda (sym val)
-         (set-default sym val)
-         (when (fboundp 'nxml-where-update-buffers)
-           (nxml-where-update-buffers)))
-  :group 'nxml-where)
+(defun nxml-where-marks-toggle ()
+  "Toggle `nxml-where-marks'."
+  (interactive)
+  (nxml-where-marks (if nxml-where-marks -1 1)))
+
+;; Fix-me: implement this?
+;; (define-toggle nxml-where-only-tags-with-id t
+;;   "Show only tags with id in the header line."
+;;   :set (lambda (sym val)
+;;          (set-default sym val)
+;;          (when (fboundp 'nxml-where-update-buffers)
+;;            (nxml-where-update-buffers)))
+;;   :group 'nxml-where)
 
 (defface nxml-where-marking
   '((t (:inherit secondary-selection)))

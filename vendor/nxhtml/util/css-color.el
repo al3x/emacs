@@ -5,6 +5,9 @@
 
 ;; Author: Niels Giesen
 ;; Keywords: processes, css, extensions, tools
+;; Some smaller changes made by Lennart Borgman
+
+;; Last-Updated: 2009-10-19 Mon
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -74,22 +77,13 @@
 
 ;;; Code:
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'mumamo nil t))
 
 ;;;###autoload
 (defgroup css-color ()
   "Customization group for library `css-color'."
   :group 'css
   :group 'nxhtml)
-
-(defun css-color-turn-on-in-buffer ()
-  "Turn on `css-color-mode' in `css-mode'."
-  (when (derived-mode-p 'css-mode)
-    (css-color-mode 1)))
-
-;;;###autoload
-(define-globalized-minor-mode css-color-global-mode css-color-mode
-  css-color-turn-on-in-buffer
-  :group 'css-color)
 
 (defconst css-color-hex-chars "0123456789abcdefABCDEF"
   "Composing chars in hexadecimal notation, save for the hash (#) sign.")
@@ -283,7 +277,7 @@
 			     'keymap css-color-map))
 	(put-text-property (match-beginning 0)
 			   (match-end 0)
-			   'color-type 'hex)
+			   'css-color-type 'hex)
 	(put-text-property (match-beginning 0)
 			   (match-end 0)
 			   'rear-nonsticky t)
@@ -293,17 +287,17 @@
 				       (match-string-no-properties 0)
 				       :foreground
 				       (css-color-foreground-color
-                                     (match-string-no-properties 0)))))))
-  (,css-color-html-re
-   (0
-     (let ((color
-           (css-color-string-name-to-hex (match-string-no-properties 0))))
-     (put-text-property (match-beginning 0)
-                        (match-end 0)
-                        'keymap css-color-generic-map)
+                                        (match-string-no-properties 0)))))))
+    (,css-color-html-re
+     (0
+      (let ((color
+             (css-color-string-name-to-hex (match-string-no-properties 0))))
+        (put-text-property (match-beginning 0)
+                           (match-end 0)
+                           'keymap css-color-generic-map)
 	(put-text-property (match-beginning 0)
 			   (match-end 0)
-			   'color-type 'name)
+			   'css-color-type 'name)
 	(put-text-property (match-beginning 0)
 			   (match-end 0)
 			   'rear-nonsticky t)
@@ -327,7 +321,7 @@
 			   'keymap css-color-generic-map)
 	(put-text-property (match-beginning 0)
 			   (match-end 0)
-			   'color-type 'hsl)
+			   'css-color-type 'hsl)
 	(put-text-property (match-beginning 0)
 			   (match-end 0)
 			   'rear-nonsticky t)
@@ -346,7 +340,7 @@
 			   'keymap css-color-generic-map)
 	(put-text-property (match-beginning 0)
 			   (match-end 0)
-			   'color-type 'rgb)
+			   'css-color-type 'rgb)
 	(put-text-property (match-beginning 0)
 			   (match-end 0)
 			   'rear-nonsticky t)
@@ -357,10 +351,12 @@
 				       :foreground
 				       (css-color-foreground-color
 					color))))))))
+
+
 ;;;###autoload
 (define-minor-mode css-color-mode
   "Show hex color literals with the given color as background.
-In this mode hexadecimal colour specifications like #3253ff are
+In this mode hexadecimal colour specifications like #6600ff are
 displayed with the specified colour as background.
 
 Certain keys are bound to special colour editing commands when
@@ -385,6 +381,16 @@ point is at a hexadecimal colour:
 
 (put 'css-color-mode 'permanent-local t)
 
+(defun css-color-turn-on-in-buffer ()
+  "Turn on `css-color-mode' in `css-mode'."
+  (when (derived-mode-p 'css-mode)
+    (css-color-mode 1)))
+
+;;;###autoload
+(define-globalized-minor-mode css-color-global-mode css-color-mode
+  css-color-turn-on-in-buffer
+  :group 'css-color)
+
 (defun css-color-font-lock-hook-fun ()
   "Add css-color pattern to font-lock's."
   (if font-lock-mode
@@ -392,7 +398,7 @@ point is at a hexadecimal colour:
     (css-color-mode -1)))
 
 (defvar css-color-map
-  (let ((m (make-sparse-keymap)))
+  (let ((m (make-sparse-keymap "css-color")))
     (define-key m "=" 'css-color-up)
     (define-key m "-" 'css-color-down)
     (define-key m "h" 'css-color-hue-up)
@@ -407,7 +413,7 @@ point is at a hexadecimal colour:
   "Mode map for `css-color-minor-mode'")
 
 (defvar css-color-generic-map
-  (let ((m (make-sparse-keymap)))
+  (let ((m (make-sparse-keymap "css-color")))
     (define-key m "=" 'css-color-num-up)
     (define-key m "-" 'css-color-num-down)
     (define-key m " " 'css-color-cycle-type)
@@ -448,8 +454,8 @@ point is at a hexadecimal colour:
    (;;(oddp (length str))
     (= (mod (length str) 2) 1)
     (css-color-hex-to-rgb (mapconcat (lambda (c)
-				  (make-string 2 c))
-				(string-to-list str) "")))
+                                       (make-string 2 c))
+                                     (string-to-list str) "")))
    (t (cons (string-to-number (substring str 0 2) 16)
 	    (css-color-hex-to-rgb (substring str 2))))))
 
@@ -461,7 +467,7 @@ point is at a hexadecimal colour:
 (defun css-color-rgb-to-hex (r g b)
   "Return r g b as #rrggbb in hexadecimal, propertized to have
 the keymap `css-color-map'"
-   (format "%02x%02x%02x" r g b))			     ;val
+  (format "%02x%02x%02x" r g b))			     ;val
 
 (defun css-color-rgb-to-hsv (r g b)
   "Return list of (hue saturation value).
@@ -474,20 +480,20 @@ GIMP-style, that is."
 	 (max (max r g b))
 	 (min (min r g b)))
     (values
-	  (round
-	   (cond ((and (= r g) (= g b)) 0)
-		 ((and (= r max)
-		       (>= g b))
-		  (* 60 (/ (- g b) (- max min))))
-		 ((and (= r max)
-		       (< g b))
-		  (+ 360 (* 60 (/ (- g b) (- max min)))))
-		 ((= max g)
-		  (+ 120 (* 60 (/ (- b r) (- max min)))))
-		 ((= max b)
-		  (+ 240 (* 60 (/ (- r g) (- max min)))))))  ;hue
-	  (round (* 100 (if (= max 0) 0 (- 1 (/ min max))))) ;sat
-	  (round (/ max 2.55)))))
+     (round
+      (cond ((and (= r g) (= g b)) 0)
+            ((and (= r max)
+                  (>= g b))
+             (* 60 (/ (- g b) (- max min))))
+            ((and (= r max)
+                  (< g b))
+             (+ 360 (* 60 (/ (- g b) (- max min)))))
+            ((= max g)
+             (+ 120 (* 60 (/ (- b r) (- max min)))))
+            ((= max b)
+             (+ 240 (* 60 (/ (- r g) (- max min)))))))  ;hue
+     (round (* 100 (if (= max 0) 0 (- 1 (/ min max))))) ;sat
+     (round (/ max 2.55)))))
 
 (defun css-color-rgb-to-hsl (r g b)
   "Return R G B (in range 0-255) converted to HSL (0-360 for hue, rest in %)"
@@ -541,7 +547,7 @@ GIMP-style, that is."
     (css-color-rgb-to-hsl r g b)))
 
 (defun css-color-hsv-to-hex (h s v)
-   (apply 'css-color-rgb-to-hex (css-color-hsv-to-rgb h s v)))
+  (apply 'css-color-rgb-to-hex (css-color-hsv-to-rgb h s v)))
 
 (defun css-color-hsv-to-rgb (h s v)
   "Convert a point in the Hue, Saturation, Value (aka Brightness)
@@ -578,7 +584,7 @@ Returns a list of values in the range of 0 to 255.
   (propertize
    (apply 'css-color-hsv-to-hex color-data)
    'keymap css-color-map
-   'color color-data))
+   'css-color color-data))
 
 ;; Source: hsl
 (defun css-color-hsl-to-rgb-fractions (h s l)
@@ -609,12 +615,12 @@ Returns a list of values in the range of 0 to 255.
 (defun css-color-hue-to-rgb (x y h)
   (when (< h 0) (incf h))
   (when (> h 1) (decf h))
-   (cond ((< h (/ 1 6.0))
-	  (+ x (* (- y x) h 6)))
-	 ((< h 0.5) y)
-	 ((< h (/ 2.0 3.0))
-	  (+ x (* (- y x) (- (/ 2.0 3.0) h) 6)))
-	 (t x)))
+  (cond ((< h (/ 1 6.0))
+         (+ x (* (- y x) h 6)))
+        ((< h 0.5) y)
+        ((< h (/ 2.0 3.0))
+         (+ x (* (- y x) (- (/ 2.0 3.0) h) 6)))
+        (t x)))
 
 (defun css-color-parse-hsl (str)
   (string-match
@@ -659,7 +665,7 @@ Returns a list of values in the range of 0 to 255.
 (defun css-color-get-color-at-point ()
   (save-excursion
     (css-color-hexval-beginning)
-    (let ((saved-color (get-text-property (point) 'color)))
+    (let ((saved-color (get-text-property (point) 'css-color)))
       (or saved-color
 	  (css-color-hex-to-hsv
 	   (buffer-substring-no-properties (point) (+ (point) 6)))))))
@@ -700,44 +706,53 @@ Returns a list of values in the range of 0 to 255.
        (propertize
 	(apply 'format "%02x%02x%02x" rgb)
 	'keymap css-color-map
-	'color nil
+	'css-color nil
 	'rear-nonsticky t)))
     (goto-char pos)))
 
 ;; channels (r, g, b)
 (defun css-color-up (val)
+  "Adjust R/G/B up."
   (interactive "p")
   (css-color-adjust-hex-at-p val))
 
 (defun css-color-down (val)
+  "Adjust R/G/B down."
   (interactive "p")
   (css-color-adjust-hex-at-p (- val)))
 ;; hue
 (defun css-color-hue-up (val)
+  "Adjust Hue up."
   (interactive "p")
   (css-color-adj-hue-at-p val))
 
 (defun css-color-hue-down (val)
+  "Adjust Hue down."
   (interactive "p")
   (css-color-adj-hue-at-p (- val)))
 ;; saturation
 (defun css-color-saturation-up (val)
+  "Adjust Saturation up."
   (interactive "p")
   (css-color-adj-saturation-at-p val))
 
 (defun css-color-saturation-down (val)
+  "Adjust Saturation down."
   (interactive "p")
   (css-color-adj-saturation-at-p (- val)))
 ;; value
 (defun css-color-value-up (val)
+  "Adjust Value up."
   (interactive "p")
   (css-color-adj-value-at-p val))
 
 (defun css-color-value-down (val)
+  "Adjust Value down."
   (interactive "p")
   (css-color-adj-value-at-p (- val)))
 
 (defun css-color-num-up (arg)
+  "Adjust HEX number up."
   (interactive "p")
   (save-excursion
     (let ((digits "1234567890"))
@@ -753,13 +768,14 @@ Returns a list of values in the range of 0 to 255.
 		     (setq num (min num 100)))
 		    ((looking-back "hsla?(")
 		     (setq num (css-color-normalize-hue num)))
-		    ((memq 'color-type (text-properties-at (point)))
+		    ((memq 'css-color-type (text-properties-at (point)))
 		     (setq num (min num 255)))))
 	    (number-to-string num))
 	  'keymap
 	  css-color-generic-map))))))
 
 (defun css-color-num-down (arg)
+  "Adjust HEX number down."
   (interactive "p")
   (save-excursion
     (let ((digits "1234567890"))
@@ -782,18 +798,18 @@ Returns a list of values in the range of 0 to 255.
   "Skip to beginning of color.
 
 Return list of point and color-type."
-  (while (memq 'color-type (text-properties-at (point)))
+  (while (memq 'css-color-type (text-properties-at (point)))
     (backward-char 1))
   (forward-char 1)
-  (cons (point) (plist-get (text-properties-at (point)) 'color-type)))
+  (cons (point) (plist-get (text-properties-at (point)) 'css-color-type)))
 
 (defun css-color-end-of-color ()
   "Skip to beginning of color.
 
 Return list of point and color-type."
-  (while (plist-get (text-properties-at (point)) 'color-type)
+  (while (plist-get (text-properties-at (point)) 'css-color-type)
     (forward-char 1))
-  (cons (point) (plist-get (text-properties-at (1- (point))) 'color-type)))
+  (cons (point) (plist-get (text-properties-at (1- (point))) 'css-color-type)))
 
 (defun css-color-color-info ()
   (destructuring-bind ((beg . type)
@@ -809,22 +825,21 @@ Return list of point and color-type."
   (cadr (member sym css-color-type-circle)))
 
 (defun css-color-cycle-type ()
+  "Cycle color type."
   (interactive)
   (destructuring-bind (beg end type color) (css-color-color-info)
     (if (or (= 0 (length color)) (null type))
 	(error "Not at color"))
     (delete-region beg end)
     (insert
-     (propertize
-     (funcall
-      (intern-soft
-     (format "css-color-string-%s-to-%s"
-            type
-            (css-color-next-type type)))
-      color)
-   'keymap (if (eq (css-color-next-type type) 'hex)
-              css-color-map
-              css-color-generic-map)     'rear-nonsticky t))
+     (propertize (funcall
+                  (intern-soft (format "css-color-string-%s-to-%s"
+                                       type
+                                       (css-color-next-type type)))
+                  color)
+                 'keymap (if (eq (css-color-next-type type) 'hex)
+                             css-color-map
+                           css-color-generic-map)     'rear-nonsticky t))
     (goto-char beg)))
 
 (defun css-color-string-hex-to-hsl (str)
@@ -838,23 +853,25 @@ Return list of point and color-type."
   (multiple-value-bind (h s l)
       (css-color-parse-hsl str)
     (apply 'format
-	     "rgb(%d,%d,%d)"
-	     (mapcar 'round (css-color-hsl-to-rgb h s l)))))
+           "rgb(%d,%d,%d)"
+           (mapcar 'round (css-color-hsl-to-rgb h s l)))))
 
 (defun css-color-string-rgb-to-name (str)
   (let ((color (css-color-string-rgb-to-hex str)))
     (or (car (rassoc (list (upcase color)) css-color-html-colors)) ;if name ok
-      color)))                                  ;else return hex
- (defun css-color-string-name-to-hex (str)
+        color)))                                  ;else return hex
+
+(defun css-color-string-name-to-hex (str)
   (let ((str (downcase str)))
     (cadr (assoc-if
-	   (lambda (a)
-	     (string=
-	      (downcase a)
-	      str))
+           (lambda (a)
+             (string=
+              (downcase a)
+              str))
 	   css-color-html-colors))))
- (defun css-color-string-rgb-to-hex (str)
- (save-match-data
+
+(defun css-color-string-rgb-to-hex (str)
+  (save-match-data
     (string-match css-color-rgb-re str)
     (concat "#"
 	    (apply 'css-color-rgb-to-hex
@@ -873,6 +890,7 @@ Return list of point and color-type."
   (concat "#" (apply 'css-color-hsl-to-hex (css-color-parse-hsl str))))
 
 (defun css-color-next-channel ()
+  "Cycle color channel."
   (interactive)
   (multiple-value-bind (beg end type color)
       (save-excursion (css-color-color-info))
@@ -897,6 +915,7 @@ Return list of point and color-type."
 	(t str)))
 
 (defun css-color-toggle-percentage ()
+  "Toggle percent ??"
   (interactive)
   (let ((pos (point)))
     (if (eq (nth 2 (save-excursion (css-color-color-info))) 'rgb)
@@ -919,6 +938,8 @@ Return list of point and color-type."
 ;; provide some backwards-compatibility to hexcolor.el:
 (defvar css-color-fg-history nil)
 (defvar css-color-bg-history nil)
+
+;;;###autoload
 (defun css-color-test (fg-color bg-color)
   "Test colors interactively.
 The colors are displayed in the echo area. You can specify the

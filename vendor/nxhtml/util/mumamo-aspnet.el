@@ -58,6 +58,7 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(eval-when-compile (require 'mumamo))
 
 ;;;
 
@@ -109,7 +110,8 @@ page.
 
 Internal variable.")
 (make-variable-buffer-local 'mumamo-aspnet-page-language-mode-spec)
-(add-to-list 'mumamo-survive 'mumamo-aspnet-page-language-mode-spec)
+;;(add-to-list 'mumamo-survive 'mumamo-aspnet-page-language-mode-spec)
+(put 'mumamo-aspnet-page-language-mode-spec 'permanent-local t)
 
 (defconst mumamo-aspnet-language-regex
   (rx (0+ (not (any ">")))

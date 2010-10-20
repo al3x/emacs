@@ -44,8 +44,8 @@
 ;;
 ;;; Code:
 
-(require 'cl)
-(require 'ourcomments-util)
+(eval-when-compile (require 'cl))
+(eval-when-compile (require 'ourcomments-util))
 
 (eval-and-compile
   (defvar nxhtmltest-bin-Q
@@ -86,12 +86,16 @@ See `nxhtmltest-run' for more information about the tests."
                 "\" load-path)")))
     (with-current-buffer temp-eval-buf
       (save-buffer))
+    (kill-buffer temp-eval-buf)
     (unless (file-exists-p nxhtmltest-bin-Q)
       (error "Can't find directory %s" nxhtmltest-bin-Q))
+    (setq nxhtmltest-bin-Q (file-name-sans-extension nxhtmltest-bin-Q))
     (unless (file-exists-p test-el)
       (error "Can't find file %s" test-el))
+    (setq test-el (file-name-sans-extension test-el))
     (unless (file-exists-p nxhtml-auto-start)
       (error "Can't find file %s" nxhtml-auto-start))
+    (setq nxhtml-auto-start (file-name-sans-extension nxhtml-auto-start))
     (message "nxhtmltest-bin-Q=%s" nxhtmltest-bin-Q)
     (message "nxhtml-auto-start=%s" nxhtml-auto-start)
     (setenv "nxhtmltest-run-Q" "run")

@@ -49,22 +49,23 @@
 ;;; Code:
 
 (let ((debug-on-error t))
-  (unless (= emacs-major-version 22)
-    (error "This file is for Emacs 22 only"))
+  (if (/= emacs-major-version 22)
+      (message "This file (autostart22.el) is for Emacs 22 only")
 
-  (defalias 'Custom-mode 'custom-mode)
+    (defalias 'Custom-mode 'custom-mode)
 
-  (let* ((this-file (or load-file-name buffer-file-name))
-         (this-dir (file-name-directory this-file))
-         ;; FIX-ME: Download nXml (since it is not included in Emacs
-         ;; 22) and place the path to rng-auto.el in your downloaded
-         ;; nXml HERE:
-         (rng-auto-file (or (locate-library "rng-auto.el")
-                            "c:/emacs/u/081231/EmacsW32/nxhtml/nxml-mode-20041004/rng-auto.el")))
-    (unless (file-exists-p rng-auto-file)
-      (error "Can't find rng-auto.el, please edit %s" this-file))
-    (load rng-auto-file)))
+    (let* ((this-file (or load-file-name buffer-file-name))
+           (this-dir (file-name-directory this-file))
+           ;; FIX-ME: Download nXml (since it is not included in Emacs
+           ;; 22) and place the path to rng-auto.el in your downloaded
+           ;; nXml HERE:
+           (rng-auto-file (or (locate-library "rng-auto.el")
+                              "c:/emacs/u/081231/EmacsW32/nxhtml/nxml-mode-20041004/rng-auto.el")))
+      (unless (file-exists-p rng-auto-file)
+        (error "Can't find rng-auto.el, please edit %s" this-file))
+      (load rng-auto-file))))
 
+(provide 'autostart22)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autostart22.el ends here

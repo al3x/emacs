@@ -1,8 +1,6 @@
 ;;; html-chklnk.el --- Check links in local HTML sites
-
-;; Copyright (C) 2005 by Lennart Borgman
-
-;; Author:  Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Wed Mar 15 14:46:17 2006
 (defconst html-chklnk:version "0.2") ;; Version:
 ;; Last-Updated: Tue Apr 10 04:12:32 2007 (7200 +0200)
@@ -57,9 +55,10 @@
       (require 'w32shell nil t))))
 
 
-(eval-when-compile (require 'html-site))
+(eval-when-compile (require 'html-site nil t))
 (require 'compile)
 
+;;;###autoload
 (defgroup html-chklnk nil
   "Customization group for html-chklnk."
   :group 'nxhtml)

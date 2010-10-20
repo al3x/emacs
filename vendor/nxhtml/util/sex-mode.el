@@ -162,6 +162,7 @@ If no entry was found return `emacs' for opening inside Emacs."
     ;;(message "cmd=%s" cmd)
     cmd))
 
+;;;###autoload
 (defgroup sex nil
   "Customization group for `sex-mode'."
   :group 'external)

@@ -59,7 +59,8 @@
 
 ;; Partly after an idea on EmacsWiki
 
-(defconst mozadd-edited-buffer nil)
+(defvar mozadd-edited-buffer nil)
+(setq mozadd-edited-buffer nil)
 
 ;;;###autoload
 (define-minor-mode mozadd-refresh-edited-on-save-mode
@@ -220,11 +221,15 @@ The mozadd edited file must be shown in Firefox and visible."
     (run-with-idle-timer 0 nil 'mozadd-maybe-exec-next)
     ))
 
-(defconst mozadd-current-task nil)
-(defconst mozadd-task-queue nil)
+(defvar mozadd-current-task nil)
+(setq mozadd-current-task nil)
+
+(defvar mozadd-task-queue nil)
+(setq mozadd-task-queue nil)
 ;;(mozadd-add-task "content.location.href" 'mozadd-get-initial-mirror-location)
 ;;(mozadd-add-task "hi" 1)
 ;;(mozadd-add-task "hm" 2)
+
 (defun mozadd-clear-exec-queue ()
   (setq mozadd-current-task nil)
   (setq mozadd-task-queue nil)

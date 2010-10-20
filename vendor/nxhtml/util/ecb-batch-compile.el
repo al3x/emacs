@@ -46,18 +46,20 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(eval-and-compile (require 'udev-ecb nil t))
+
 (let* ((this-file load-file-name)
        (this-dir (file-name-directory this-file))
        )
   (add-to-list 'load-path this-dir))
 
-(require 'udev-cedet)
-(udev-cedet-load-cedet t)
+;;(require 'udev-cedet)
+;;(udev-cedet-load-cedet t)
 
-(eval-and-compile (require 'udev-ecb))
-(udev-ecb-load-ecb)
-
-(ecb-byte-compile)
+(eval-when (eval)
+  (udev-ecb-load-ecb)
+  (ecb-byte-compile))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; ecb-batch-compile.el ends here

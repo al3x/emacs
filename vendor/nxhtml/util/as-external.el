@@ -62,16 +62,17 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'html-write))
-(eval-when-compile (require 'mumamo))
-(eval-when-compile (require 'ourcomments-util))
-(eval-when-compile
-  (when (featurep 'nxml-mode)
-    (require 'nxhtml)
-    (require 'nxhtml-mumamo)))
-(eval-when-compile (require 'wikipedia-mode))
+(eval-when-compile (require 'html-write nil t))
+(eval-when-compile (require 'mlinks nil t))
+(eval-when-compile (require 'mumamo nil t))
+(eval-when-compile (require 'nxhtml-mode nil t))
+(eval-when-compile (require 'ourcomments-util nil t))
+(eval-when-compile (require 'pause nil t))
 (eval-when-compile (require 'server))
+(eval-when-compile (require 'wikipedia-mode nil t))
+(eval-and-compile  (require 'wrap-to-fill nil t))
 
+;;;###autoload
 (defgroup as-external nil
   "Settings related to Emacs as external editor."
   :group 'nxhtml
@@ -85,7 +86,7 @@
 (defcustom as-external-alist
   '(
     ("/itsalltext/.*wiki" as-external-for-wiki)
-    ("/itsalltext/.*mail" as-external-for-mail)
+    ("/itsalltext/.*mail" as-external-for-mail-mode)
     ("/itsalltext/"       as-external-for-xhtml)
    )
   "List to determine setup if Emacs is used as an external Editor.
@@ -113,7 +114,7 @@ All Text:
 - `as-external-for-xhtml'.  For text areas on web pages where you
   can enter some XHTML code, for example blog comment fields.
 
-- `as-external-for-mail', for editing web mail messages.
+- `as-external-for-mail-mode', for editing web mail messages.
 
 - `as-external-for-wiki', for mediawiki.
 
@@ -147,7 +148,7 @@ In this case Emacs is used to edit textarea fields on a web page.
 The text will most often be part of a web page later, like on a
 blog.  Therefore turn on these:
 
-- `nxhtml-mumamo-mode' since some XHTML tags may be allowed.
+- `nxhtml-mode' since some XHTML tags may be allowed.
 - `nxhtml-validation-header-mode' since it is not a full page.
 - `wrap-to-fill-column-mode' to see what you are writing.
 - `html-write-mode' to see it even better.
@@ -155,69 +156,56 @@ blog.  Therefore turn on these:
 Also bypass the question for line end conversion when using
 emacsw32-eol."
   (interactive)
-  ;;(if (not (fboundp 'nxhtml-mumamo-mode))
   (if (not (fboundp 'nxhtml-mode))
       (as-external-fall-back "Can't find nXhtml")
-    ;;(nxhtml-mumamo-mode)
     (nxhtml-mode)
     (nxhtml-validation-header-mode 1)
-    ;;(mumamo-post-command)
     (set (make-local-variable 'wrap-to-fill-left-marg-modes)
          '(nxhtml-mode fundamental-mode))
     (wrap-to-fill-column-mode 1)
     ;;(visible-point-mode 1)
-    (html-write-mode 1)
+    (when (fboundp 'html-write-mode) (html-write-mode 1))
     (when (boundp 'emacsw32-eol-ask-before-save)
       (make-local-variable 'emacsw32-eol-ask-before-save)
       (setq emacsw32-eol-ask-before-save nil))))
 
-;;;###autoload
-(defun as-external-for-mail ()
-  "Setup for Firefox addon It's All Text to edit mail.
 
-- `text-mode' since some XHTML tags may be allowed.
-- `wrap-to-fill-column-mode' to see what you are writing.
-- `as-external-mail-comment-mode' for commenting/uncommenting.
+(defvar as-external-mail-mode-comment-pattern "^>.*$"
+  "Regular expression for a comment line.")
+
+(defvar as-external-mail-mode-email-pattern
+  (concat "[a-z0-9$%(*-=?[_][^<>\")!;:,{}]*"
+          "\@"
+          "\\(?:[a-z0-9\-]+\.\\)+[a-z0-9]\\{2,4\\}")
+  "Regular expression for a mail address.")
+
+(defvar as-external-mail-mode-font-lock-keywords
+  (list
+   (list as-external-mail-mode-comment-pattern
+         '(0 font-lock-comment-face))
+   ;; (list as-external-mail-mode-email-pattern
+   ;;       '(0 font-lock-keyword-face))
+   ))
+
+;;;###autoload
+(define-derived-mode as-external-for-mail-mode text-mode "ExtMail "
+  "Setup for Firefox addon It's All Text to edit mail.
+Set normal mail comment markers in column 1 (ie >).
+
+Set `fill-column' to 90 and enable `wrap-to-fill-column-mode' so
+that it will look similar to how it will look in the sent plain
+text mail.
 
 See also `as-external-mode'."
-  (interactive)
-  (text-mode)
-  (as-external-mail-comment-mode 1)
+  ;; To-do: Look at http://globs.org/articles.php?lng=en&pg=2
+  (set (make-local-variable 'comment-column) 0)
+  (set (make-local-variable 'comment-start) ">")
+  (set (make-local-variable 'comment-end)   "")
+  (set (make-local-variable 'font-lock-defaults)
+       '((as-external-mail-mode-font-lock-keywords) nil))
   (setq fill-column 90)
+  (mlinks-mode 1)
   (wrap-to-fill-column-mode 1))
-
-(defvar as-external-mail-comment-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map [(meta ?\;)] 'as-external-comment-mail-text)
-    (define-key map [(meta ?\,)] 'as-external-uncomment-mail-text)
-    map))
-
-(defun as-external-comment-mail-text (from-pos to-pos)
-  (interactive "r")
-  (let ((here (point-marker)))
-    (goto-char from-pos)
-    (goto-char (line-beginning-position))
-    (while (< (point) to-pos)
-      (insert "> ")
-      (forward-line))
-    (goto-char here)))
-
-(defun as-external-uncomment-mail-text (from-pos to-pos)
-  (interactive "r")
-  (let ((here (point-marker)))
-    (goto-char from-pos)
-    (goto-char (line-beginning-position))
-    (while (< (point) to-pos)
-      (when (and (eq ?> (char-after))
-                 (eq ?\  (char-after (1+ (point)))))
-        (delete-char 2))
-      (forward-line))
-    (goto-char here)))
-
-(define-minor-mode as-external-mail-comment-mode
-  "Define commands to comment text in mail messages."
-  :keymap 'as-external-mail-comment-mode-map
-  :group 'as-external)
 
 ;;;###autoload
 (defun as-external-for-wiki ()
@@ -266,18 +254,56 @@ This is done by checking `as-external-alist'."
       (as-external-setup-1)
     (error (message "as-external-setup error: %s" err))))
 
+(defvar as-external-my-frame nil)
+(make-variable-buffer-local 'as-external-my-frame)
+
+(defvar as-external-last-buffer nil)
+
+(defun as-external-server-window-fix-frames ()
+  (condition-case err
+      (with-current-buffer as-external-last-buffer
+        (unless (buffer-live-p pause-buffer)
+          (remove-hook 'pause-break-exit-hook 'as-external-server-window-fix-frames)
+          (setq as-external-my-frame (or as-external-my-frame
+                                         (make-frame)))
+          (dolist (f (frame-list))
+            (unless (eq f as-external-my-frame)
+              (lower-frame f)))
+          (raise-frame as-external-my-frame)))
+    (error (message "%s" (error-message-string err)))))
+
+(defun as-external-server-window (buffer)
+  (setq server-window nil)
+  (with-current-buffer buffer
+    (setq as-external-last-buffer (current-buffer))
+    (run-with-idle-timer 2 nil 'as-external-server-window-fix-frames)
+    (add-hook 'pause-break-exit-hook 'as-external-server-window-fix-frames)
+    (add-hook 'kill-buffer-hook 'as-external-delete-my-frame nil t)))
+
+(defun as-external-delete-my-frame ()
+  (let ((win (and (frame-live-p as-external-my-frame)
+                  (get-buffer-window nil as-external-my-frame))))
+    (when (and win
+               (= 1 (length (window-list as-external-my-frame 'no-mini))))
+      (delete-frame as-external-my-frame)
+      (lower-frame))))
+
 (defun as-external-setup-1 ()
   ;; Fix-me: How does one know if the file names are case sensitive?
-  (catch 'done
-    (dolist (rec as-external-alist)
-      (let ((file-regexp (car rec))
-            (setup-fun   (cadr rec)))
-        (when (symbolp file-regexp)
-          (setq file-regexp (symbol-value file-regexp)))
-        (when (string-match file-regexp (buffer-file-name))
-          (funcall setup-fun)
-          (throw 'done t))))))
-
+  (unless (when (boundp 'nowait) nowait) ;; dynamically bound in `server-visit-files'
+    (unless server-window
+      ;; `server-goto-toplevel' has been done here.
+      ;; Setup to use a new frame
+      (setq server-window 'as-external-server-window))
+    (catch 'done
+      (dolist (rec as-external-alist)
+        (let ((file-regexp (car rec))
+              (setup-fun   (cadr rec)))
+          (when (symbolp file-regexp)
+            (setq file-regexp (symbol-value file-regexp)))
+          (when (string-match file-regexp (buffer-file-name))
+            (funcall setup-fun)
+            (throw 'done t)))))))
 
 (provide 'as-external)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

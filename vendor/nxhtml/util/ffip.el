@@ -103,6 +103,7 @@ See `ffip-set-current-project'."
        (eq ffip-project-type type)
        (equal ffip-project-roots root)))
 
+;;;###autoload
 (defun ffip-set-current-project (name root type)
   "Setup ffip project NAME with top directory ROOT of type TYPE.
 ROOT can either be just a directory or a list of directory where
@@ -234,6 +235,7 @@ directory) and FULL-NAME is the full file name."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Interactive functions
 
+;;;###autoload
 (defun ffip-find-file-in-dirtree (root)
   "Find files in directory tree ROOT."
   (interactive "DFind file in directory tree: ")

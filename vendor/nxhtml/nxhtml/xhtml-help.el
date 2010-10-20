@@ -1,8 +1,6 @@
 ;;; xhtml-help.el --- Browse XHTML reference sites
-
-;; Copyright (C) 2005 by Lennart Borgman
-
-;; Author:  Lennart Borgman <lennart DOT borgman DOT 073 AT student DOT lu DOT se>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: 2005-08-16
 ;; Last-Updated: Wed Aug 01 14:24:07 2007 (7200 +0200)
 (defconst xhtml-help:version "0.57") ;; Version:
@@ -101,6 +99,7 @@
     (when (< 0 (length tag))
       (xhtml-help-browse-tag tag))))
 
+;;;###autoload
 (defgroup xhtml-help nil
   "Customization group for xhtml-help."
   :group 'nxhtml

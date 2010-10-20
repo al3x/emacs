@@ -109,6 +109,7 @@
 (defun inlimg-img-spec-p (spec)
   (assoc spec inlimg-modes-img-values))
 
+;;;###autoload
 (defgroup inlimg nil
   "Customization group for inlimg."
   :group 'nxhtml)
@@ -138,7 +139,7 @@
   :group 'inlimg)
 
 (define-widget 'inlimg-spec-widget 'symbol
-  "A major mode lisp function."
+  "An inline image specification."
   :complete-function (lambda ()
                        (interactive)
                        (lisp-complete-symbol 'inlimg-img-spec-p))
@@ -199,6 +200,7 @@ To add new image tag patterns modify `inlimg-modes-img-values'."
 
 (defun inlimg-ovl-valid-p (ovl)
   (and (overlay-get ovl 'inlimg-img)
+       inlimg-img-regexp
        (save-match-data
          (let ((here (point)))
            (goto-char (overlay-start ovl))
@@ -211,51 +213,52 @@ To add new image tag patterns modify `inlimg-modes-img-values'."
 If DISPLAY-IMAGE is non-nil then display image, otherwise hide it.
 
 Return non-nil if an img tag was found."
-  (let (src dir beg end img ovl remote beg-face)
-    (goto-char pt)
-    (save-match-data
-      (when (re-search-forward (symbol-value inlimg-img-regexp) nil t)
-        (setq src (or (match-string-no-properties 1)
-                      (match-string-no-properties 2)
-                      (match-string-no-properties 3)))
-        (setq beg (match-beginning 0))
-        (setq beg-face (get-text-property beg 'face))
-        (setq remote (string-match "^https?://" src))
-        (setq end (- (line-end-position) 0))
-        (setq ovl (catch 'old-ovl
-                    (dolist (ovl (overlays-at beg))
-                      (when (inlimg-ovl-p ovl)
-                        (throw 'old-ovl ovl)))
-                    nil))
-        (unless ovl
-          (setq ovl (make-overlay beg end))
-          (overlay-put ovl 'inlimg-img t)
-          (overlay-put ovl 'priority 100)
-          (overlay-put ovl 'face 'inlimg-img-tag)
-          (overlay-put ovl 'keymap inlimg-img-keymap))
-        (overlay-put ovl 'image-file src)
-        (overlay-put ovl 'inlimg-slice inlimg-slice)
-        (if display-image
-            (unless (memq beg-face '(font-lock-comment-face font-lock-string-face))
-              (unless remote
-                (setq dir (if (buffer-file-name)
-                              (file-name-directory (buffer-file-name))
-                            default-directory))
-                (setq src (expand-file-name src dir)))
-              (if (or remote (not (file-exists-p src)))
-                  (setq img (propertize
-                             (if remote " Image is on the web " " Image not found ")
-                             'face (if remote 'inlimg-img-remote 'inlimg-img-missing)))
-                (setq img (create-image src nil nil
-                                        :relief 5
-                                        :margin inlimg-margins))
-                (setq img (inlimg-slice-img img inlimg-slice)))
-              (let ((str (copy-sequence "\nX")))
-                (setq str (propertize str 'face 'inlimg-img-tag))
-                (put-text-property 1 2 'display img str)
-                (overlay-put ovl 'after-string str)))
-          (overlay-put ovl 'after-string nil))))
-    ovl))
+  (when inlimg-img-regexp
+    (let (src dir beg end img ovl remote beg-face)
+      (goto-char pt)
+      (save-match-data
+        (when (re-search-forward (symbol-value inlimg-img-regexp) nil t)
+          (setq src (or (match-string-no-properties 1)
+                        (match-string-no-properties 2)
+                        (match-string-no-properties 3)))
+          (setq beg (match-beginning 0))
+          (setq beg-face (get-text-property beg 'face))
+          (setq remote (string-match "^https?://" src))
+          (setq end (- (line-end-position) 0))
+          (setq ovl (catch 'old-ovl
+                      (dolist (ovl (overlays-at beg))
+                        (when (inlimg-ovl-p ovl)
+                          (throw 'old-ovl ovl)))
+                      nil))
+          (unless ovl
+            (setq ovl (make-overlay beg end))
+            (overlay-put ovl 'inlimg-img t)
+            (overlay-put ovl 'priority 100)
+            (overlay-put ovl 'face 'inlimg-img-tag)
+            (overlay-put ovl 'keymap inlimg-img-keymap))
+          (overlay-put ovl 'image-file src)
+          (overlay-put ovl 'inlimg-slice inlimg-slice)
+          (if display-image
+              (unless (memq beg-face '(font-lock-comment-face font-lock-string-face))
+                (unless remote
+                  (setq dir (if (buffer-file-name)
+                                (file-name-directory (buffer-file-name))
+                              default-directory))
+                  (setq src (expand-file-name src dir)))
+                (if (or remote (not (file-exists-p src)))
+                    (setq img (propertize
+                               (if remote " Image is on the web " " Image not found ")
+                               'face (if remote 'inlimg-img-remote 'inlimg-img-missing)))
+                  (setq img (create-image src nil nil
+                                          :relief 5
+                                          :margin inlimg-margins))
+                  (setq img (inlimg-slice-img img inlimg-slice)))
+                (let ((str (copy-sequence "\nX")))
+                  (setq str (propertize str 'face 'inlimg-img-tag))
+                  (put-text-property 1 2 'display img str)
+                  (overlay-put ovl 'after-string str)))
+            (overlay-put ovl 'after-string nil))))
+      ovl)))
 
 (defun inlimg-slice-img (img slice)
   (if (not slice)
@@ -300,10 +303,13 @@ Note: This minor mode uses `font-lock-mode'."
       (progn
         (let ((major-mode (or (and (boundp 'mumamo-multi-major-mode)
                                    mumamo-multi-major-mode
+                                   (fboundp 'mumamo-main-major-mode)
                                    (mumamo-main-major-mode))
                               major-mode)))
-          (add-hook 'font-lock-mode-hook 'inlimg-on-font-lock-off)
-          (inlimg-get-buffer-img-values))
+          (inlimg-get-buffer-img-values)
+          (unless inlimg-img-regexp
+            (message "inlim-mode: No image spec, can't do anything"))
+          (add-hook 'font-lock-mode-hook 'inlimg-on-font-lock-off))
         (inlimg-font-lock t))
     (inlimg-font-lock nil)
     (inlimg-delete-overlays)))

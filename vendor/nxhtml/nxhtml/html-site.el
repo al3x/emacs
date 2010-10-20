@@ -1,8 +1,6 @@
 ;;; html-site.el --- Keeping (X)HTML files together
-
-;; Copyright (C) 2006, 2007 by Lennart Borgman
-
-;; Author: Lennart Borgman <lennartDOTborgmanDOT073ATstudentDOTluDOTse>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Wed Mar 01 17:25:52 2006
 (defconst html-site:version "0.3");; Version:
 ;; Last-Updated: 2008-03-22T03:32:06+0100 Sat
@@ -52,13 +50,129 @@
 
 ;; TODO: maybe use browse-url-filename-alist
 
-(eval-when-compile (require 'ourcomments-util))
 (eval-when-compile (require 'cl))
+(eval-when-compile (require 'compile))
 (eval-when-compile (require 'dired))
-(eval-when-compile (require 'ffip))
+(eval-when-compile (require 'ffip nil t))
 (eval-when-compile (require 'grep))
+(eval-when-compile (require 'ourcomments-util nil t))
+(eval-when-compile (require 'url-parse))
 ;;(defvar html-site-list) ;; Silence compiler
 ;;(defvar html-site-current) ;; Silence compiler
+
+;;;###autoload
+(defgroup html-site nil
+  "Customization group for html-site."
+  :group 'nxhtml)
+
+;; Fix-me: Rewrite using directory variables
+(defcustom html-site-list nil
+  "Known site directories and corresponding attributes.
+Each element in the list is a list containing:
+
+* Name for the site.
+* Site root directory.
+* Page list file - Pages for table of contents (TOC). Usually
+  initially built from the site directory by
+  `html-toc-create-pages-file'.
+* Frames file.
+* TOC file for the frames file.
+* Output directory - where to put the merged TOC and site
+  pages.
+* Output template file - html template for merging. See `html-wtoc-dir'
+  for examples.
+* Function for additional tasks - for example copying images, style
+  sheets, scripts etc.
+--
+"
+  :type '(repeat
+          (list
+           (string :tag "*** Site name ***")
+           (directory :tag "Site root directory")
+           (file :tag "Page list file")
+           (file :tag "Frames file")
+           (file :tag "Contents file for frames")
+           (directory :tag "Output directory for pages with TOC" :help-echo "Where to put the merged files")
+           (file :tag "Template file for pages with TOC" :help-echo "HTML template for merging")
+           (choice :tag "Extra function for pages with TOC"
+                   (const nil :tag "Default function")
+                   (function)
+                   )
+           (string :tag "Ftp host address")
+           (string :tag "Ftp user")
+           (string :tag "Ftp password")
+           (string :tag "Ftp directory root")
+           (string :tag "Ftp directory root for pages with TOC")
+           (string :tag "Web host address")
+           (string :tag "Web directory root")
+           (string :tag "Web directory root for pages with TOC")
+           ))
+  :set (lambda (symbol value)
+         ;;(message "sym=%s, value=%s" symbol value)
+         (set-default symbol value)
+         (when (featurep 'html-site)
+           (let ((ok t))
+             (dolist (e value)
+               (let (
+                     (name     (elt e 0))
+                     (site-dir (elt e 1))
+                     (pag-file (elt e 2))
+                     (frm-file (elt e 3))
+                     (toc-file (elt e 4))
+                     (out-dir  (elt e 5))
+                     (tpl-file (elt e 6))
+                     (fun      (elt e 7))
+                     (ftp-host (elt e 8))
+                     (ftp-user (elt e 9))
+                     (ftp-pw   (elt e 10))
+                     (ftp-dir  (elt e 11))
+                     (ftp-wtoc-dir (elt e 12))
+                     (web-host (elt e 13))
+                     (web-dir  (elt e 14))
+                     (web-wtoc-dir (elt e 15))
+                     )
+                 (unless (not (string= "" name))
+                   (html-site-lwarn '(html-site-list) :error "Empty site name"))
+                 (if (not (file-directory-p site-dir))
+                     (progn
+                       (html-site-lwarn '(html-site-list) :error "Site directory for %s not found: %s" name site-dir)
+                       (setq ok nil))
+                   (unless (file-exists-p pag-file)
+                     (html-site-lwarn '(html-site-list) :warning "Pages list file for %s does not exist: %s" name pag-file))
+                   (unless (file-exists-p tpl-file)
+                     (html-site-lwarn '(html-site-list) :warning "Template file for %s does not exist: %s" name tpl-file)))
+                 (when (< 0 (length out-dir))
+                   (html-site-chk-wtocdir out-dir site-dir))
+                 (when fun
+                   (unless (functionp fun)
+                     (html-site-lwarn '(html-site-list) :error "Site %s - Unknown function: %s" name fun)
+                     (setq ok nil)
+                     ))
+                 ))
+             )))
+  :group 'html-site)
+
+(defcustom html-site-current ""
+  "Current site name.
+Use the entry with this name in `html-site-list'."
+  :set (lambda (symbol value)
+         ;;(message "sym=%s, value=%s" symbol value)
+         (set-default symbol value)
+         (when (featurep 'html-site)
+           (or (when (= 0 (length value))
+                 (message "html-site-current (information): No current site set"))
+               (let ((site-names))
+                 (dolist (m html-site-list)
+                   (setq site-names (cons (elt m 0) site-names)))
+                 (or
+                  (unless (member value site-names)
+                    (html-site-lwarn '(html-site-current) :error "Can't find site: %s" value))
+                  (let ((site-dir (html-site-site-dir value)))
+                    (unless (file-directory-p site-dir)
+                      (html-site-lwarn '(html-site-current) :error "Can't find site directory: %s" value))))))))
+  :type 'string
+  :set-after '(html-site-list)
+  :group 'html-site)
 
 (defun html-site-looks-like-local-url (file)
   "Return t if this looks like a local file something url."
@@ -70,10 +184,12 @@
           ;; letters
           (or (not (memq system-type '(ms-dos windows-nt)))
               (< 1 (length url-type)))))))
-(assert (not (html-site-looks-like-local-url "http://www.some.where/")))
-(assert (html-site-looks-like-local-url "/unix/file"))
-(when (memq system-type '(windows-nt))
-  (assert (html-site-looks-like-local-url "c:/w32/file")))
+
+(when nil
+  (assert (not (html-site-looks-like-local-url "http://www.some.where/")))
+  (assert (html-site-looks-like-local-url "/unix/file"))
+  (when (memq system-type '(windows-nt))
+    (assert (html-site-looks-like-local-url "c:/w32/file"))))
 
 (defun html-site-dir-contains (dir file)
   ;;(when (= ?~ (string-to-char file)) (setq file (expand-file-name file)))
@@ -185,7 +301,7 @@
 (defun html-site-find-file ()
   "Find file in current site."
   (interactive)
-  (require 'ffip)
+  ;;(require 'ffip)
   (ffip-set-current-project html-site-current
                             (html-site-current-site-dir)
                             'nxhtml)
@@ -202,8 +318,7 @@ See `rgrep' for the arguments REGEXP and FILES."
             (files (grep-read-files regexp)))
        (list regexp files))))
   ;; fix-me: ask for site
-  (when (called-interactively-p)
-    )
+  ;;(when (called-interactively-p) )
   (rgrep regexp files (html-site-current-site-dir)))
 
 ;;;###autoload
@@ -217,8 +332,7 @@ See `rgrep' for the arguments REGEXP and FILES."
      ;;(length parameters)
      parameters))
   ;; fix-me: ask for site
-  (when (called-interactively-p)
-    )
+  ;;(when (called-interactively-p) )
   (rdir-query-replace from to file-regexp
                       ;;root
                       (html-site-current-site-dir)
@@ -391,7 +505,8 @@ See `rgrep' for the arguments REGEXP and FILES."
       (concat (file-name-as-directory mirror-root) rel-path))))
 
 ;; Some checks to see if html-site-path-in-mirror works:
-(when t
+(when nil
+  (require 'cl)
   ;; Try to make a non-existent directory name to work around Emacs
   ;; bug (which was fixed today in CVS):
   (let ((local-file "/temp814354/in/hej.html")
@@ -483,118 +598,6 @@ See `rgrep' for the arguments REGEXP and FILES."
 No check is done that the file exists."
   ;;(find-file-name-handler "/ftp:c:/eclean/" 'file-exists-p)
   (null (find-file-name-handler filename 'file-exists-p)))
-
-(defgroup html-site nil
-  "Customization group for html-site."
-  :group 'nxhtml)
-
-;; Fix-me: Rewrite using directory variables
-(defcustom html-site-list nil
-  "Known site directories and corresponding attributes.
-Each element in the list is a list containing:
-
-* Name for the site.
-* Site root directory.
-* Page list file - Pages for table of contents (TOC). Usually
-  initially built from the site directory by
-  `html-toc-create-pages-file'.
-* Frames file.
-* TOC file for the frames file.
-* Output directory - where to put the merged TOC and site
-  pages.
-* Output template file - html template for merging. See `html-wtoc-dir'
-  for examples.
-* Function for additional tasks - for example copying images, style
-  sheets, scripts etc.
---
-"
-  :type '(repeat
-          (list
-           (string :tag "*** Site name ***")
-           (directory :tag "Site root directory")
-           (file :tag "Page list file")
-           (file :tag "Frames file")
-           (file :tag "Contents file for frames")
-           (directory :tag "Output directory for pages with TOC" :help-echo "Where to put the merged files")
-           (file :tag "Template file for pages with TOC" :help-echo "HTML template for merging")
-           (choice :tag "Extra function for pages with TOC"
-                   (const nil :tag "Default function")
-                   (function)
-                   )
-           (string :tag "Ftp host address")
-           (string :tag "Ftp user")
-           (string :tag "Ftp password")
-           (string :tag "Ftp directory root")
-           (string :tag "Ftp directory root for pages with TOC")
-           (string :tag "Web host address")
-           (string :tag "Web directory root")
-           (string :tag "Web directory root for pages with TOC")
-           ))
-  :set (lambda (symbol value)
-         ;;(message "sym=%s, value=%s" symbol value)
-         (set-default symbol value)
-         (let ((ok t))
-           (dolist (e value)
-             (let (
-                   (name     (elt e 0))
-                   (site-dir (elt e 1))
-                   (pag-file (elt e 2))
-                   (frm-file (elt e 3))
-                   (toc-file (elt e 4))
-                   (out-dir  (elt e 5))
-                   (tpl-file (elt e 6))
-                   (fun      (elt e 7))
-                   (ftp-host (elt e 8))
-                   (ftp-user (elt e 9))
-                   (ftp-pw   (elt e 10))
-                   (ftp-dir  (elt e 11))
-                   (ftp-wtoc-dir (elt e 12))
-                   (web-host (elt e 13))
-                   (web-dir  (elt e 14))
-                   (web-wtoc-dir (elt e 15))
-                   )
-               (unless (not (string= "" name))
-                 (html-site-lwarn '(html-site-list) :error "Empty site name"))
-               (if (not (file-directory-p site-dir))
-                   (progn
-                     (html-site-lwarn '(html-site-list) :error "Site directory for %s not found: %s" name site-dir)
-                     (setq ok nil))
-                 (unless (file-exists-p pag-file)
-                   (html-site-lwarn '(html-site-list) :warning "Pages list file for %s does not exist: %s" name pag-file))
-                 (unless (file-exists-p tpl-file)
-                   (html-site-lwarn '(html-site-list) :warning "Template file for %s does not exist: %s" name tpl-file)))
-               (when (< 0 (length out-dir))
-                 (html-site-chk-wtocdir out-dir site-dir))
-               (when fun
-                 (unless (functionp fun)
-                   (html-site-lwarn '(html-site-list) :error "Site %s - Unknown function: %s" name fun)
-                   (setq ok nil)
-                   ))
-               ))
-           ))
-  :group 'html-site)
-
-(defcustom html-site-current ""
-  "Current site name.
-Use the entry with this name in `html-site-list'."
-  :set (lambda (symbol value)
-         ;;(message "sym=%s, value=%s" symbol value)
-         (set-default symbol value)
-         (or (when (= 0 (length value))
-               (message "html-site-current (information): No current site set"))
-             (let ((site-names))
-               (dolist (m html-site-list)
-                 (setq site-names (cons (elt m 0) site-names)))
-               (or
-                (unless (member value site-names)
-                  (html-site-lwarn '(html-site-current) :error "Can't find site: %s" value))
-                (let ((site-dir (html-site-site-dir value)))
-                  (unless (file-directory-p site-dir)
-                    (html-site-lwarn '(html-site-current) :error "Can't find site directory: %s" value))))))
-         )
-  :type 'string
-  :set-after '(html-site-list)
-  :group 'html-site)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Put subprocess here at the moment ...
@@ -700,17 +703,22 @@ Use the entry with this name in `html-site-list'."
     )
   )
 
+(defvar noshell-process-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(control ?c)(control ?k)] 'noshell-kill-subprocess)
+    (define-key map [(control ?g)] 'noshell-quit)
+    map))
+
 (define-derived-mode noshell-process-mode fundamental-mode "Subprocess"
   nil
   (setq buffer-read-only t)
-  (buffer-disable-undo (current-buffer))
-  )
-(define-key noshell-process-mode-map [(control ?c)(control ?k)] 'noshell-kill-subprocess)
-(define-key noshell-process-mode-map [(control ?g)] 'noshell-quit)
+  (buffer-disable-undo (current-buffer)))
+
 (defun noshell-quit ()
   (interactive)
   (noshell-kill-subprocess)
   (keyboard-quit))
+
 (defun noshell-kill-subprocess ()
   (interactive)
   (when (eq major-mode 'noshell-process-mode)

@@ -71,6 +71,7 @@
 ;; 23456
 ;; 1234567890
 ;; 346789238
+;;;###autoload
 (define-minor-mode ocr-user-mode
   "Color up digits three by three."
   :group 'convenience

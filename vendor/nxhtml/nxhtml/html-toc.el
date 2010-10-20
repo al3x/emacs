@@ -1,8 +1,6 @@
 ;;; html-toc.el --- Building and updating TOC for a site
-
-;; Copyright (C) 2005, 2006, 2007 Lennart Borgman
-
-;; Author: Lennart Borgman <lennartDOTborgmanDOT073ATstudentDOTluDOTse>
+;;
+;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Created: Wed Feb 01 14:40:13 2006
 (defconst html-toc:version "0.4");; Version:
 ;; Last-Updated: Tue Apr 10 04:09:29 2007 (7200 +0200)
@@ -52,9 +50,9 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (add-to-list 'load-path default-directory load-path))
-(eval-when-compile (require 'fupd))
+(eval-when-compile (require 'fupd nil t))
 ;;(require 'html-move)
-(eval-when-compile (require 'html-site))
+(eval-when-compile (require 'html-site nil t))
 ;;(require 'dom)
 (require 'xml)
 
@@ -122,6 +120,7 @@ Return the file name."
          )
     (expand-file-name "html-toc" this-dir)))
 
+;;;###autoload
 (defgroup html-toc nil
   "Customization group for html-toc."
   :group 'nxhtml)

@@ -1432,7 +1432,7 @@ surrounds region."
           (setq start (point))
           (insert (cadr tpl))
           (setq end (point))
-          (print-help-return-message)
+          (with-no-warnings (print-help-return-message))
           ;;(put-text-property start end 'face 'highlight)
           (goto-char start)
           (setq here (point))

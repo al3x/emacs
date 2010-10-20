@@ -48,11 +48,15 @@
 (defvar buffer-bg-overlay nil)
 (put 'buffer-bg-overlay 'permanent-local t)
 
+;;;###autoload
 (defun buffer-bg-set-color (color buffer)
   "Add an overlay with background color COLOR to buffer BUFFER.
 If COLOR is nil remove previously added overlay."
   (interactive
-   (let ((color (read-color "Background color (empty string to remove): " nil t)))
+   (let* ((prompt (if buffer-bg-overlay
+                      "Background color (empty string to remove): "
+                    "Background color: "))
+          (color (read-color prompt nil t)))
      (when (= 0 (length color))
        (setq color nil))
      (list color (current-buffer))
@@ -65,8 +69,19 @@ If COLOR is nil remove previously added overlay."
       (widen)
       (setq buffer-bg-overlay
             (make-overlay (point-min) (point-max) nil nil t))
-      ;; Let the overlay have priority 0 which is the lowest.
-      (overlay-put buffer-bg-overlay 'face (list :background color)))))
+      ;; Fix-me: Let the overlay have priority 0 which is the
+      ;; lowest. Change this to below char properties if this is ever
+      ;; allowed in Emacs.
+      (overlay-put buffer-bg-overlay 'priority 0)
+      (let* ((bg-face (list :background color))
+             (bg-after (propertize (make-string 10 ?\n)
+                                   'face bg-face
+                                   'intangible t)))
+        (overlay-put buffer-bg-overlay 'face bg-face)
+        ;; This is just confusing, don't use it:
+        ;;(overlay-put buffer-bg-overlay 'after-string bg-after)
+        )
+      )))
 
 
 (provide 'buffer-bg)
