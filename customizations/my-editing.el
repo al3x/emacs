@@ -19,9 +19,9 @@
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ; line numbering
-(require 'linum)
-(global-linum-mode 0)
-(setq linum-format "%d ") ; space after line number
+;(require 'linum)
+;(global-linum-mode 0)
+;(setq linum-format "%d ") ; space after line number
 
 ; show column number in bar
 (column-number-mode t)
