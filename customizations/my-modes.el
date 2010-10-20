@@ -58,7 +58,9 @@
   indent-region-mode t
   rng-nxml-auto-validate-flag nil
   nxml-degraded t)
+
 (add-to-list 'auto-mode-alist '("\\.html\\.erb\\'" . eruby-nxhtml-mumamo))
+
 (eval-after-load 'nxhtml
   '(eval-after-load 'color-theme
      (custom-set-faces
