@@ -21,6 +21,7 @@
 (require 'scala-mode)
 (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
 (add-to-list 'load-path "~/.emacs.d/vendor/ensime/elisp/")
+; ENSIME for Scala
 (require 'ensime)
 (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 
@@ -31,14 +32,13 @@
 ; Markdown
 (autoload 'markdown-mode "markdown-mode.el"
   "Major mode for editing Markdown files" t)
-(setq auto-mode-alist
-  (cons '("\\.markdown" . markdown-mode) auto-mode-alist)
-  (cons '("\\.mkd" . markdown-mode) auto-mode-alist))
+(add-to-list 'auto-mode-alist '("\\.markdown$" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.mkd$" . markdown-mode))
 
 ; YAML
-(require 'yaml-mode)
-(add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
+(autoload 'yaml-mode "YAML" nil t)
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
+(add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
 
 ; JavaScript
 (autoload 'js2-mode "js2" nil t)
