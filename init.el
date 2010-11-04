@@ -11,7 +11,6 @@
      (expand-file-name "~/.emacs.d/elpa/package.el"))
   (package-initialize))
 
-
 ; some modes need to call stuff on the exec-path
 (push "/usr/local/bin" exec-path)
 
@@ -47,6 +46,7 @@
 (vendor 'smart-tab)
 (vendor 'haskell-mode)
 (vendor 'rvm)
+(vendor 'markdown)
 
 ; load third-party modes that the vendor function can't handle
 (add-to-list 'load-path "~/.emacs.d/vendor/scala")
@@ -62,3 +62,5 @@
 
 ; start a server for usage with emacsclient
 ;(add-hook 'after-init-hook 'server-start)
+
+

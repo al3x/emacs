@@ -28,6 +28,13 @@
 (require 'textile-minor-mode)
 (add-to-list 'auto-mode-alist '("\\.textile\\'" . textile-minor-mode))
 
+; Markdown
+(autoload 'markdown-mode "markdown-mode.el"
+  "Major mode for editing Markdown files" t)
+(setq auto-mode-alist
+  (cons '("\\.markdown" . markdown-mode) auto-mode-alist)
+  (cons '("\\.mkd" . markdown-mode) auto-mode-alist))
+
 ; YAML
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
