@@ -8,3 +8,4 @@ vendor/nav/.hg/
 *.elc
 .ensime
 ac-comphist.dat
+passwords.el
