@@ -80,7 +80,7 @@
                      (concat root-dir ".ensime")
                      (format "%S" (list :sources '("src")
                                         :project-package "com.test"
-                                        :dependency-jars ensime-test-env-classpath
+                                        :compile-jars ensime-test-env-classpath
                                         ))))
          (src-dir (file-name-as-directory (concat root-dir "src"))))
     (mkdir src-dir)
