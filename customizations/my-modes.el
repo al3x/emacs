@@ -34,6 +34,7 @@
   "Major mode for editing Markdown files" t)
 (add-to-list 'auto-mode-alist '("\\.markdown$" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.mkd$" . markdown-mode))
+(add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
 
 ; YAML
 (autoload 'yaml-mode "YAML" nil t)
@@ -79,16 +80,6 @@
        '(mumamo-background-chunk-submode1 ((((class color) (min-colors 88) (background dark)) (:background "#373736"))))
 )))
 
-; swank-clojure
-;(setq swank-clojure-jar-path "/usr/local/Cellar/clojure/1.1.0/clojure.jar")
-;(setq swank-clojure-extra-classpaths
-;      (list "/usr/local/Cellar/clojure-contrib/HEAD/clojure-contrib-1.2.0-SNAPSHOT.jar"))
-;(require 'clojure-mode)
-
-; SLIME
-;(require 'slime)
-;(eval-after-load "slime" (slime-setup '(slime-repl)))
-;(slime-setup)
 
 ; Thrift
 (require 'thrift-mode)
@@ -104,13 +95,18 @@
 (setq smart-tab-using-hippie-expand nil)
 
 ; paredit
-;(autoload 'paredit-mode "paredit"
-;  "Minor mode for pseudo-structurally editing Lisp code."
-;  t)
-;(mapc (lambda (mode)
-;        (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
-;     (add-hook hook (lambda () (paredit-mode 1)))))
-;    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
+(autoload 'paredit-mode "paredit"
+  "Minor mode for pseudo-structurally editing Lisp code."
+  t)
+  (mapc (lambda (mode)
+    (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
+     (add-hook hook (lambda () (paredit-mode 1)))))
+    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
+
+; Clojure Debugging
+(setq cdt-dir "/Users/al3x/src/third_party/clojure/cdt")
+(setq cdt-source-path "/Users/al3x/src/third_party/clojure/clojure-1.2.0/src/jvm:/Users/al3x/src/third_party/clojure/clojure-1.2.0/src/clj:/Users/al3x/src/third_party/clojure/clojure-contrib-1.2.0/src/main/clojure:/Users/al3x/src/banksimple/Clothesline/src:/Users/al3x/src/banksimple/Clothesline/test")
+(load-file (format "%s/ide/emacs/cdt.el" cdt-dir))
 
 ; Scheme
 (setq scheme-program-name "csi -:c")
