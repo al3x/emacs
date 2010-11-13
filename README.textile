@@ -1,6 +1,6 @@
 h1. Introduction
 
-This is the Emacs configuration that "Alex Payne":http://al3x.net/ uses. It's not designed to be a "starter kit":http://github.com/technomancy/emacs-starter-kit/tree/master. It's just some dude's preferred way to edit stuff, when using Emacs.
+This is the Emacs configuration that "Alex Payne":http://al3x.net/ uses. It's not designed to be a "starter kit":http://github.com/technomancy/emacs-starter-kit. It's just some dude's preferred way to edit stuff, when using Emacs.
 
 h2. Overview
 
