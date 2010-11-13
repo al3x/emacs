@@ -93,6 +93,10 @@
 (require 'smart-tab)
 (global-smart-tab-mode 1)
 (setq smart-tab-using-hippie-expand nil)
+(setq smart-tab-completion-functions-alist
+  '((emacs-lisp-mode . lisp-complete-symbol)
+    (text-mode . dabbrev-completion)
+    (clojure-mode . slime-complete-symbol)))
 
 ; paredit
 (autoload 'paredit-mode "paredit"

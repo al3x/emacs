@@ -4,7 +4,7 @@
 (setq mac-command-key-is-meta nil)
 
 ; switch to shell
-(global-set-key (kbd "s-0") 'ansi-term)
+(global-set-key (kbd "s-0") 'visit-ansi-term)
 
 ; search with ack
 (global-set-key (kbd "s-F") 'ack)

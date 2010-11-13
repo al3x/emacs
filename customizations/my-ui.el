@@ -49,3 +49,7 @@
 (set-face-attribute 'magit-diff-file-header nil :foreground "RoyalBlue1")
 (set-face-attribute 'magit-diff-hunk-header nil :foreground "#fbde2d")
 (set-face-attribute 'magit-item-highlight nil :background "black")
+
+; smooth scrolling
+(setq scroll-conservatively 10000
+  scroll-step 1)
