@@ -38,3 +38,5 @@
   (lambda ()
     (define-key rinari-minor-mode-map (kbd "s-r") 'rinari-test)))
 
+; fullscreen!
+(global-set-key [(super return)] 'ns-toggle-fullscreen)
