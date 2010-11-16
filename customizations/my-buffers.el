@@ -42,6 +42,7 @@
 (ido-mode t)
 (setq ido-enable-flex-matching t) ; case insensitive matching
 (add-to-list 'ido-ignore-files "\\.DS_Store")
+(setq ido-create-new-buffer 'always) ; always create a new buffer with Ido
 
 ; kill ring browsing
 (require 'browse-kill-ring+)
@@ -52,3 +53,11 @@
 
 ; pick up changes to files on disk automatically (ie, after git pull)
 (global-auto-revert-mode 1)
+
+; don't confirm opening non-existant files/buffers
+(setq confirm-nonexistent-file-or-buffer nil)
+
+; yes, I want to kill buffers with processes attached
+(setq kill-buffer-query-functions
+  (remq 'process-kill-buffer-query-function
+         kill-buffer-query-functions))
