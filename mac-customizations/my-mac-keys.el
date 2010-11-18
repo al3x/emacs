@@ -40,3 +40,11 @@
 
 ; fullscreen!
 (global-set-key [(super return)] 'ns-toggle-fullscreen)
+
+; nav
+(global-set-key [(super meta N)] (lambda ()
+  (interactive)
+  (nav)
+  ; FIXME wouldn't have to do this if http://bit.ly/cKyzKd got fixed
+  (color-theme-twilight)
+))
