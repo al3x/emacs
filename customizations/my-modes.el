@@ -114,9 +114,3 @@
 
 ; Scheme
 (setq scheme-program-name "csi -:c")
-
-; Simplenote
-(require 'simplenote)
-(load "~/.emacs.d/passwords.el")
-(setq simplenote-directory "~/Dropbox/notes-emacs")
-(simplenote-setup)
