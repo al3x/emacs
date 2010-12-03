@@ -33,17 +33,17 @@ target of the call. Point should be be over last character of call target."
 
 (defun ensime-ac-member-candidates (prefix)
   "Return candidate list."
-  (let ((members 
-	 (ensime-ac-with-buffer-copy 
+  (let ((members
+	 (ensime-ac-with-buffer-copy
 
 	  ;; Make some space so trailing characters don't interfere.
 	  (save-excursion (insert " "))
-	  
+
 	  ;; Delete the member prefix - not necessary
 	  (ensime-ac-delete-text-back-to-call-target)
 
 	  ;; Add a trailing '.' so object accesses parse correctly
-	  (save-excursion 
+	  (save-excursion
 	    (forward-char)
 	    (insert ". ()"))
 
@@ -113,9 +113,9 @@ changes will be forgotten."
 	      ;; method context will be extended to include
 	      ;; the completion point.
 	      (insert "  ;exit()};"))
-	      (ensime-write-buffer)
-	      (ensime-rpc-name-completions-at-point
-	       prefix is-constructor))))
+	    (ensime-write-buffer)
+	    (ensime-rpc-name-completions-at-point
+	     prefix is-constructor))))
 
       (mapcar (lambda (m)
 		(let* ((type-sig (plist-get m :type-sig))
@@ -229,11 +229,11 @@ Return nil if we're looking at a context where symbol completion is inappropriat
 (defun ensime-ac-complete-action ()
   "Defines action to perform when user selects a completion candidate.
 
-Delete the candidate from the buffer as inserted by auto-complete.el (because the
-candidates include type information that we don't want inserted), and re-insert just 
-the name of the candidate.
+Delete the candidate from the buffer as inserted by auto-complete.el
+ (because the candidates include type information that we don't want
+ inserted), and re-insert just the name of the candidate.
 
-If the candidate is a callable symbol, add the meta-info about the 
+If the candidate is a callable symbol, add the meta-info about the
 params and param types as text-properties of the completed name. This info will
 be used later to give contextual help when entering arguments."
 
@@ -243,7 +243,7 @@ be used later to give contextual help when entering arguments."
 
     (let ((name-start-point (- (point) (length name))))
 
-      ;; If this member is callable, use the type-id to lookup call completion 
+      ;; If this member is callable, use the type-id to lookup call completion
       ;; information to show parameter hints.
       (when (get-text-property 0 'is-callable candidate)
 
@@ -264,28 +264,28 @@ be used later to give contextual help when entering arguments."
 	    (if (car param-sections)
 		(progn
 		  ;; Save param info as a text properties of the member name..
-		  (add-text-properties name-start-point 
+		  (add-text-properties name-start-point
 				       (+ name-start-point (length name))
 				       (list 'call-info call-info
 					     ))
+
 		  ;; Setup hook function to show param help later..
-		  (add-hook 'post-command-hook 'ensime-ac-update-param-help nil t)
+		  (add-hook 'post-command-hook
+			    'ensime-ac-update-param-help nil t)
 		  ;; This command should trigger help hook..
 		  (forward-char))
 
 	      ;; Otherwise, skip to the end
 	      (forward-char 2))
-	    
 
-	    
 	    ))))))
 
 
 (defun ensime-ac-get-active-param-info ()
-  "Search backward from point for the param info of the call that 
+  "Search backward from point for the param info of the call that
    we are currently completing."
   (save-excursion
-    (catch 'return 
+    (catch 'return
       (let ((lbound (point-at-bol)) ;; TODO <-- what about multiline param lists
 	    (balance 0))
 	(backward-char 1)
@@ -297,7 +297,7 @@ be used later to give contextual help when entering arguments."
 	   (t
 	    (let ((call-info (get-text-property (point) 'call-info)))
 	      (if (and (or (> balance 0)) call-info)
-		  (throw 'return (list 
+		  (throw 'return (list
 				  :name-end-point (point)
 				  :call-info call-info))))))
 	  (backward-char 1))))))
@@ -311,30 +311,40 @@ be used later to give contextual help when entering arguments."
 	(let* (;; To be used for tooltip positioning..
 	       (name-end (plist-get info :name-end-point))
 	       (call-info (plist-get info :call-info))
-	       (param-sections (plist-get call-info :param-sections))
-	       (result-type (plist-get call-info :result-type))
-	       (signature (concat (mapconcat
-				   (lambda (sect)
-				     (concat "("
-					     (mapconcat
-					      (lambda (n-and-t)
-						(format 
-						 "%s:%s" 
-						 (propertize (car n-and-t) 
-							     'face font-lock-variable-name-face)
-						 (propertize (ensime-type-name-with-args 
-							      (cadr n-and-t))
-							     'face font-lock-type-face)
-						 ))
-					      sect ", ") ")"))
-				   param-sections " => ")
-				  " => " 
-				  (propertize 
-				   (ensime-type-name-with-args result-type)
-				   'face font-lock-type-face)
-				  )))
+	       (signature (ensime-ac-call-info-signature call-info)))
 	  (message signature))
       (remove-hook 'post-command-hook 'ensime-ac-update-param-help t))))
+
+
+(defun ensime-ac-call-info-signature (call-info)
+  "Return a pretty string representation of a call-info object."
+  (let ((param-sections (plist-get call-info :param-sections))
+	(result-type (plist-get call-info :result-type)))
+    (concat
+     (mapconcat
+      (lambda (sect)
+	(let ((params (plist-get sect :params))
+	      (is-implicit (plist-get sect :is-implicit)))
+	  (propertize (concat "("
+		  (mapconcat
+		   (lambda (nm-and-tp)
+		     (format
+		      "%s:%s"
+		      (propertize (car nm-and-tp)
+				  'face font-lock-variable-name-face)
+		      (propertize (ensime-type-name-with-args
+				   (cadr nm-and-tp))
+				  'face font-lock-type-face)
+		      ))
+		   params ", ") ")")
+		   'face (when is-implicit font-lock-comment-face)
+		   )))
+	param-sections " => ")
+      " => "
+      (propertize
+       (ensime-type-name-with-args result-type)
+       'face font-lock-type-face)
+      )))
 
 
 (ac-define-source ensime-members

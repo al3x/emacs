@@ -69,7 +69,7 @@
   (interactive)
   (ensime-refactor-perform
    'organizeImports
-   `(file ,buffer-file-name start ,(point-min) end ,(point-max))))
+   `(file ,buffer-file-name)))
 
 
 (defun ensime-refactor-rename ()
