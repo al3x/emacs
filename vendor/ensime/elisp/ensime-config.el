@@ -66,7 +66,9 @@
                                      (mapconcat #'identity options ", ")
                                      "): ")
                              options)))
-            (ensime-config-build root (make-symbol proj-type))))))))
+            (ensime-config-build root (make-symbol proj-type)))))
+      nil
+      )))
 
 
 (defun ensime-config-read-proj-package ()
@@ -147,11 +149,13 @@
 
     (when (yes-or-no-p
            "Is the Scala standard library located somewhere else? ")
-      (ensime-set-key conf :compile-jars
-                      (append (plist-get conf :compile-jars)
-                              (list (ensime-config-fix-path
-                                     (read-directory-name
-                                      "Where are is the Scala library located? " root) root)))))
+      (ensime-set-key
+       conf :compile-jars
+       (append (plist-get conf :compile-jars)
+	       (list (ensime-config-fix-path
+		      (read-directory-name
+		       "Where are is the Scala library located? "
+		       root) root)))))
 
     (ensime-set-key conf :target
                     (ensime-config-read-target-dir root))
@@ -189,14 +193,17 @@
 
     (when (yes-or-no-p
            "Is the Scala standard library located somewhere else? ")
-      (ensime-set-key conf :compile-jars
-                      (append (plist-get conf :compile-jars)
-                              (list (ensime-config-fix-path
-                                     (read-directory-name
-                                      "Where are is the Scala library located? " root) root)))))
+      (ensime-set-key
+       conf :compile-jars
+       (append (plist-get conf :compile-jars)
+	       (list (ensime-config-fix-path
+		      (read-directory-name
+		       (concat
+			"Where are is the Scala "
+			"library located? " root)) root)))))
 
     (ensime-set-key conf :target
-                    (ensime-config-read-target-dir root))
+		    (ensime-config-read-target-dir root))
 
 
     conf
@@ -204,42 +211,42 @@
 
 (defun ensime-config-build (root proj-type)
   (let* ((builder-func (intern-soft
-                        (concat
-                         "ensime-config-build-"
-                         (symbol-name proj-type))))
-         (conf (funcall builder-func root))
-         (conf-file (concat root "/" ensime-config-file-name)))
+			(concat
+			 "ensime-config-build-"
+			 (symbol-name proj-type))))
+	 (conf (funcall builder-func root))
+	 (conf-file (concat root "/" ensime-config-file-name)))
     (with-temp-file conf-file
       (ensime-config-insert-config conf))
     (message (concat "Your project config "
-                     "has been written to %s. "
-                     "Use 'M-x ensime' to launch "
-                     "ENSIME.") conf-file)
+		     "has been written to %s. "
+		     "Use 'M-x ensime' to launch "
+		     "ENSIME.") conf-file)
     ))
 
 (defun ensime-config-insert-config (conf)
   (insert (concat ";; This config was generated using "
-                  "ensime-config-gen. Feel free to customize "
-                  "its contents manually.\n\n"))
+		  "ensime-config-gen. Feel free to customize "
+		  "its contents manually.\n\n"))
   (insert "(\n\n")
   (let ((c conf))
     (while c
       (let ((a (pop c))
-            (b (pop c)))
-        (insert (format "%S" a))
-        (insert " ")
-        (insert (format "%S" b))
-        (insert "\n\n")
-        )))
+	    (b (pop c)))
+	(insert (format "%S" a))
+	(insert " ")
+	(insert (format "%S" b))
+	(insert "\n\n")
+	)))
   (insert ")\n"))
 
 
 (defun ensime-config-guess-type (root)
   "Return a best guess of what type of project is located at root."
   (cond ((ensime-config-is-sbt-test root) 'sbt)
-        ((ensime-config-is-maven-test root) 'maven)
-        ((ensime-config-is-ivy-test root) 'custom-with-ivy)
-        (t 'custom)))
+	((ensime-config-is-maven-test root) 'maven)
+	((ensime-config-is-ivy-test root) 'custom-with-ivy)
+	(t 'custom)))
 
 (defun ensime-config-is-maven-test (root)
   (file-exists-p (concat root "/pom.xml")))
@@ -261,39 +268,50 @@
    for a suitable config file to load, return it's path. Return nil if
    no such file found."
   (let* ((dir (file-name-directory file-name))
-         (possible-path (concat dir ensime-config-file-name)))
+	 (possible-path (concat dir ensime-config-file-name)))
     (if (file-directory-p dir)
-        (if (file-exists-p possible-path)
-            possible-path
-          (if (not (equal dir (directory-file-name dir)))
-              (ensime-config-find-file (directory-file-name dir)))))))
+	(if (file-exists-p possible-path)
+	    possible-path
+	  (if (not (equal dir (directory-file-name dir)))
+	      (ensime-config-find-file (directory-file-name dir)))))))
 
 (defun ensime-config-find-and-load (&optional default-dir)
   "Query the user for the path to a config file, then load it."
   (let* ((hint (or default-dir buffer-file-name))
-         (guess (if hint (ensime-config-find-file hint)))
-         (file (if ensime-prefer-noninteractive guess
-                 (read-file-name
-                  "ENSIME Project file: "
-                  (if guess (file-name-directory guess))
-                  guess
-                  nil
-                  (if guess (file-name-nondirectory guess))
-                  ))))
+	 (guess (if hint (ensime-config-find-file hint)))
+	 (file (if ensime-prefer-noninteractive guess
+		 (read-file-name
+		  "ENSIME Project file: "
+		  (if guess (file-name-directory guess))
+		  guess
+		  nil
+		  (if guess (file-name-nondirectory guess))
+		  ))))
 
     ;; Should be ok to just give the project directory..
     (let ((file (if (and (file-directory-p file)
-                         (file-exists-p (concat file "/"
+			 (file-exists-p (concat file "/"
 						ensime-config-file-name)))
-                    (concat file "/" ensime-config-file-name)
-                  file)))
+		    (concat file "/" ensime-config-file-name)
+		  file)))
 
       (if (or (not (file-exists-p file))
-              (file-directory-p file))
-          (if (y-or-n-p "Could not find an ENSIME project file. Would you like to generate one? ")
-              (ensime-config-gen (file-name-directory file))
-            (message "Please see the ENSIME manual for instructions on how to write or generate a config file."))
-        (ensime-config-load file))
+	      (file-directory-p file))
+
+	  ;; If doesn't exist, maybe create one on the spot
+	  (if (y-or-n-p (concat
+			 "Could not find an ENSIME project file. "
+			 "Would you like to generate one? "))
+
+	      (ensime-config-gen (file-name-directory file))
+
+	    (progn (message (concat "Please see the ENSIME manual for"
+				    " instructions on how to write or"
+				    " generate a config file."))
+		   nil))
+
+	;; If does exist, load it.
+	(ensime-config-load file))
 
       )))
 
@@ -304,22 +322,54 @@
   (let ((dir (expand-file-name (file-name-directory file-name))))
     (save-excursion
       (let ((config
-             (let ((buf (find-file-read-only file-name ensime-config-file-name))
-                   (src (buffer-substring-no-properties
-                         (point-min) (point-max))))
-               (kill-buffer buf)
-               (condition-case error
-                   (read src)
-                 (error
-                  (error "Error reading configuration file, %s: %s" src error)
-                  ))
-               )))
+	     (let ((buf (find-file-read-only file-name ensime-config-file-name))
+		   (src (buffer-substring-no-properties
+			 (point-min) (point-max))))
+	       (kill-buffer buf)
+	       (condition-case error
+		   (read src)
+		 (error
+		  (error "Error reading configuration file, %s: %s" src error)
+		  ))
+	       )))
 
-        ;; We use the project file's location as the project root.
-        (ensime-set-key config :root-dir dir)
-        config)
+	;; We use the project file's location as the project root.
+	(ensime-set-key config :root-dir dir)
+
+	(ensime-config-maybe-set-active-sbt-subproject config)
+
+	config)
       )))
 
+(defun ensime-config-maybe-set-active-sbt-subproject (config)
+  "If the sbt-subprojects key exists in the config, prompt the
+ user for the desired subproject, and add an sbt-active-subproject
+ value to the config."
+  (when-let (sps (plist-get config :sbt-subprojects))
+
+    ;; For testing purposes..
+    (if ensime-prefer-noninteractive
+	(ensime-set-key
+	 config :sbt-active-subproject
+	 (plist-get (car sps) :name))
+
+      ;; Otherwise prompt the user
+      (let* ((options
+	      (mapcar
+	       (lambda (sp)
+		 (let ((nm (plist-get sp :name)))
+		   `(,nm . ,nm)))  sps))
+	     (keys (mapcar (lambda (opt) (car opt)) options)))
+	(let ((key (when keys
+		     (completing-read
+		      (concat "Which sbt subproject? ("
+			      (mapconcat #'identity keys ", ")
+			      "): ")
+		      keys nil t (car keys)))))
+	  (when-let (chosen (cdr (assoc key options)))
+	    (ensime-set-key config :sbt-active-subproject chosen)
+	    ))
+	))))
 
 
 

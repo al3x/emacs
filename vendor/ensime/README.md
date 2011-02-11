@@ -71,3 +71,18 @@ __5) Start ENSIME__
 
 Execute M-x ensime
 You only need to do this once per project.
+
+
+## Developer Quick Start
+Note: This section is for people who want to hack on ENSIME itself.
+
+After cloning, and before you can run ENSIME, you must create the distribution directory structure. The sbt task 'stage' will create the directory 'dist' underneath the root clone directory. Then, follow the install instructions in section 2.2 above, substituting CLONE_DIR/dist as the root of your ENSIME distribution.
+
+
+The work-flow I use when hacking ENSIME:
+
+- Edit source files
+- 'sbt update'
+- 'sbt dist'
+- Stop existing ENSIME server by killing *inferior-ensime-server* buffer
+- Restart ENSIME with M-x ensime

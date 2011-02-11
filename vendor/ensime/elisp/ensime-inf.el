@@ -1,7 +1,7 @@
 ;;; ensime-inf.el - Interaction with a Scala interpreter.
 
 ;; Copyright (C) 2010 Aemon Cannon
-;; 
+;;
 ;; Derived from scala-mode-inf.el
 ;; Original Copyright and Licensing notice below
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -13,29 +13,29 @@
 ;;; License
 
 ;; SCALA LICENSE
-;;  
+;;
 ;; Copyright (c) 2002-2010 EPFL, Lausanne, unless otherwise specified.
 ;; All rights reserved.
-;;  
+;;
 ;; This software was developed by the Programming Methods Laboratory of the
 ;; Swiss Federal Institute of Technology (EPFL), Lausanne, Switzerland.
-;;  
+;;
 ;; Permission to use, copy, modify, and distribute this software in source
 ;; or binary form for any purpose with or without fee is hereby granted,
 ;; provided that the following conditions are met:
-;;  
+;;
 ;;    1. Redistributions of source code must retain the above copyright
 ;;       notice, this list of conditions and the following disclaimer.
-;;  
+;;
 ;;    2. Redistributions in binary form must reproduce the above copyright
 ;;       notice, this list of conditions and the following disclaimer in the
 ;;       documentation and/or other materials provided with the distribution.
-;;  
+;;
 ;;    3. Neither the name of the EPFL nor the names of its contributors
 ;;       may be used to endorse or promote products derived from this
 ;;       software without specific prior written permission.
-;;  
-;;  
+;;
+;;
 ;; THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 ;; ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 ;; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -88,7 +88,7 @@ server."
   (define-key ensime-inf-mode-map (kbd "TAB") 'ensime-inf-send-tab)
 
   ;; Comint configuration
-  (set (make-local-variable 'comint-input-sender) 
+  (set (make-local-variable 'comint-input-sender)
        'ensime-inf-input-sender)
 
   (set (make-local-variable 'comint-output-filter-functions)
@@ -120,16 +120,17 @@ server."
 	(root-path (or (ensime-configured-project-root) "."))
 	(cmd-and-args (ensime-inf-get-repl-cmd-line)))
 
-    (switch-to-buffer-other-window 
+    (switch-to-buffer-other-window
      (get-buffer-create ensime-inf-buffer-name))
 
     (ensime-inf-mode)
 
     (cd root-path)
-    (comint-exec (current-buffer) 
-		 "ensime-inferior-scala" 
+    (ensime-assert-executable-on-path (car cmd-and-args))
+    (comint-exec (current-buffer)
+		 "ensime-inferior-scala"
 		 (car cmd-and-args)
-		 nil 
+		 nil
 		 (cdr cmd-and-args))
 
     (setq ensime-buffer-connection conn)
@@ -148,7 +149,7 @@ server."
   "Get the command needed to launch a repl, including all
 the current project's dependencies. Returns list of form (cmd [arg]*)"
   (if (ensime-connected-p)
-      (ensime-replace-keywords 
+      (ensime-replace-keywords
        ensime-inf-cmd-template
        (ensime-rpc-repl-config))
     ensime-inf-default-cmd-line))
@@ -158,10 +159,15 @@ the current project's dependencies. Returns list of form (cmd [arg]*)"
   (interactive)
   (if (equal ensime-inf-buffer-name (buffer-name))
       (switch-to-buffer-other-window (other-buffer))
-    (if (get-buffer ensime-inf-buffer-name)
-	(switch-to-buffer-other-window ensime-inf-buffer-name)
+    (if (and (get-buffer ensime-inf-buffer-name)
+             (ensime-inf-process-live-p ensime-inf-buffer-name))
+        (switch-to-buffer-other-window ensime-inf-buffer-name)
       (ensime-inf-run-scala)))
   (goto-char (point-max)))
+
+(defun ensime-inf-process-live-p (buffer-name)
+  "Check if the process associated with the buffer is living."
+  (comint-check-proc buffer-name))
 
 (defun ensime-inf-send-tab ()
   (interactive)
@@ -187,18 +193,18 @@ the current project's dependencies. Returns list of form (cmd [arg]*)"
    in the current line (or the first non-empty line going
    backwards), and begins in the first line that is not empty and
    does not start with whitespace or '{'.
-   
+
    For example:
-   
+
    println( \"aja\")
    println( \"hola\" )
-   
+
    if the cursor is somewhere in the second print statement, the
    interpreter should output 'hola'.
-   
+
    In the following case, if the cursor is in the second line, then
    the complete function definition will be send to the interpreter:
-   
+
    def foo =
      1 + 2
    "

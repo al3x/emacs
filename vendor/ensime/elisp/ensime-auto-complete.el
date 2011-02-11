@@ -39,12 +39,13 @@ target of the call. Point should be be over last character of call target."
 	  ;; Make some space so trailing characters don't interfere.
 	  (save-excursion (insert " "))
 
-	  ;; Delete the member prefix - not necessary
+	  ;; Delete the member prefix
 	  (ensime-ac-delete-text-back-to-call-target)
 
-	  ;; Add a trailing '.' so object accesses parse correctly
+	  ;; Add a trailing '.' so singleton object accesses parse correctly
+	  ;; Move cursor forward so it will be on '.'
+	  (forward-char)
 	  (save-excursion
-	    (forward-char)
 	    (insert ". ()"))
 
 	  (ensime-write-buffer)
@@ -59,7 +60,7 @@ target of the call. Point should be be over last character of call target."
 		;; Save the type for later display
 		(propertize candidate
 			    'symbol-name name
-			    'type-sig type-sig 
+			    'type-sig type-sig
 			    'type-id type-id
 			    'is-callable is-callable
 			    'summary (ensime-ac-trunc-summary type-sig)
@@ -69,27 +70,27 @@ target of the call. Point should be be over last character of call target."
 
 
 (defmacro* ensime-ac-with-buffer-copy (&rest body)
-  "Create a duplicate of the current buffer, copying all contents. 
+  "Create a duplicate of the current buffer, copying all contents.
 Bind ensime-buffer-connection and buffer-file-name to the given values.
 Execute forms in body in the context of this new buffer. The idea is that
-We can abuse this buffer, even saving its contents to disk, and all the 
+We can abuse this buffer, even saving its contents to disk, and all the
 changes will be forgotten."
   `(let ((buf (current-buffer))
 	 (file-name buffer-file-name)
 	 (p (point))
 	 (conn (ensime-current-connection)))
-     (let ((val (unwind-protect
-		    (with-temp-buffer
-		      (let ((ensime-buffer-connection conn)
-			    (buffer-file-name file-name))
-			(insert-buffer-substring buf)
-			(goto-char p)
-			,@body
-			)))))
+
+     (unwind-protect
+	 (with-temp-buffer
+	   (let ((ensime-buffer-connection conn)
+		 (buffer-file-name file-name))
+	     (insert-buffer-substring buf)
+	     (goto-char p)
+	     ,@body
+	     ))
        ;; Make sure we overwrite any changes
        ;; written from temp buffer.
        (ensime-write-buffer nil t)
-       val
        )))
 
 
@@ -103,8 +104,8 @@ changes will be forgotten."
 (defun ensime-ac-name-candidates (prefix)
   "Return candidate list."
   (let ((is-constructor (ensime-ac-completing-constructor-p prefix)))
-    (let ((names 
-	   (ensime-ac-with-buffer-copy 
+    (let ((names
+	   (ensime-ac-with-buffer-copy
 	    (backward-delete-char (length prefix))
 	    (insert ";{")
 	    (save-excursion
@@ -126,7 +127,7 @@ changes will be forgotten."
 		  ;; Save the type for later display
 		  (propertize candidate
 			      'symbol-name name
-			      'type-sig type-sig 
+			      'type-sig type-sig
 			      'type-id type-id
 			      'is-callable is-callable
 			      'summary (ensime-ac-trunc-summary type-sig)
@@ -136,12 +137,12 @@ changes will be forgotten."
 
 (defun ensime-ac-package-decl-candidates (prefix)
   "Return candidate list."
-  (when (looking-back ensime-ac-package-decl-prefix-re 
+  (when (looking-back ensime-ac-package-decl-prefix-re
 		      (ensime-pt-at-end-of-prev-line))
     (let* ((full-match (match-string 0))
 	   (path (ensime-kill-txt-props (match-string 1)))
 
-	   (names (ensime-ac-with-buffer-copy 
+	   (names (ensime-ac-with-buffer-copy
 		   (backward-delete-char (length full-match))
 		   (insert "object ensimesynthetic${")
 
@@ -162,7 +163,7 @@ changes will be forgotten."
 		       (ensime-rpc-members-for-type-at-point prefix))))))
 
       (delete-dups
-       (mapcar (lambda (m) (plist-get m :name)) 
+       (mapcar (lambda (m) (plist-get m :name))
 	       names)))))
 
 
@@ -183,11 +184,13 @@ changes will be forgotten."
   (get-text-property 0 'type-sig item))
 
 (defun ensime-pt-at-end-of-prev-line ()
-  (save-excursion (forward-line -1)(point-at-eol)))
-
+  (save-excursion (forward-line -1)
+		  (min
+		   (- (point) 1)
+		   (point-at-eol))))
 
 (defun ensime-ac-member-prefix ()
-  "Starting at current point. Find the point of completion for a member access. 
+  "Starting at current point. Find the point of completion for a member access.
    Return nil if we are not currently looking at a member access."
   (let ((point (re-search-backward "[\\. ]+\\([^\\. ]*\\)?" (point-at-bol) t)))
     (if point (1+ point))))
@@ -195,7 +198,7 @@ changes will be forgotten."
 
 (defvar ensime-ac-name-following-keyword-re
   (concat
-   "\\(?:\\W\\|\\s-\\)\\(?:else\\|case\\|new\\|with\\|extends\\)"
+   "\\(?:\\W\\|\\s-\\)\\(?:else\\|case\\|new\\|with\\|extends\\|yield\\)"
    "\\s-+\\(\\w*\\)"))
 
 (defvar ensime-ac-name-following-syntax-re
@@ -205,7 +208,8 @@ changes will be forgotten."
 
 (defun ensime-ac-name-prefix ()
   "Starting at current point - find the point of completion for a symbol.
-Return nil if we're looking at a context where symbol completion is inappropriate."
+ Return nil if we're looking at a context where symbol completion is
+ inappropriate."
   (let ((left-bound (ensime-pt-at-end-of-prev-line)))
     (when (or (looking-back  ensime-ac-name-following-keyword-re left-bound)
 	      (looking-back ensime-ac-name-following-syntax-re left-bound))
@@ -214,10 +218,10 @@ Return nil if we're looking at a context where symbol completion is inappropriat
 	point
 	))))
 
-(defvar ensime-ac-package-decl-prefix-re 
+(defvar ensime-ac-package-decl-prefix-re
   "\\(?:package\\|import\\)[ ]+\\(\\(?:[a-z0-9]+\\.\\)*\\)\\([A-z0-9]*\\)")
 (defun ensime-ac-package-decl-prefix ()
-  "Starting at current point. Find the point of completion for a member access. 
+  "Starting at current point. Find the point of completion for a member access.
    Return nil if we are not currently looking at a member access."
   (let ((left-bound (ensime-pt-at-end-of-prev-line)))
     (when (looking-back ensime-ac-package-decl-prefix-re left-bound)
@@ -326,25 +330,25 @@ be used later to give contextual help when entering arguments."
 	(let ((params (plist-get sect :params))
 	      (is-implicit (plist-get sect :is-implicit)))
 	  (propertize (concat "("
-		  (mapconcat
-		   (lambda (nm-and-tp)
-		     (format
-		      "%s:%s"
-		      (propertize (car nm-and-tp)
-				  'face font-lock-variable-name-face)
-		      (propertize (ensime-type-name-with-args
-				   (cadr nm-and-tp))
-				  'face font-lock-type-face)
-		      ))
-		   params ", ") ")")
-		   'face (when is-implicit font-lock-comment-face)
-		   )))
-	param-sections " => ")
-      " => "
-      (propertize
-       (ensime-type-name-with-args result-type)
-       'face font-lock-type-face)
-      )))
+			      (mapconcat
+			       (lambda (nm-and-tp)
+				 (format
+				  "%s:%s"
+				  (propertize (car nm-and-tp)
+					      'face font-lock-variable-name-face)
+				  (propertize (ensime-type-name-with-args
+					       (cadr nm-and-tp))
+					      'face font-lock-type-face)
+				  ))
+			       params ", ") ")")
+		      'face (when is-implicit font-lock-comment-face)
+		      )))
+      param-sections " => ")
+     " => "
+     (propertize
+      (ensime-type-name-with-args result-type)
+      'face font-lock-type-face)
+     )))
 
 
 (ac-define-source ensime-members
