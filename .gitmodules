@@ -31,3 +31,6 @@
 [submodule "vendor/full-ack"]
 	path = vendor/full-ack
 	url = https://github.com/nschum/full-ack.git
+[submodule "vendor/color-theme-sanityinc-solarized"]
+	path = vendor/color-theme-sanityinc-solarized
+	url = https://github.com/purcell/color-theme-sanityinc-solarized.git
