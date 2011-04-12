@@ -45,6 +45,7 @@
 (vendor 'haskell-mode)
 (vendor 'rvm)
 (vendor 'markdown-mode)
+(vendor 'color-theme-sanityinc-solarized)
 
 ; load third-party modes that the vendor function can't handle
 (add-to-list 'load-path "~/.emacs.d/vendor/scala")
