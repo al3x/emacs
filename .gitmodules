@@ -31,3 +31,6 @@
 [submodule "vendor/magit"]
 	path = vendor/magit
 	url = https://github.com/magit/magit.git
+[submodule "vendor/mo-git-blame"]
+	path = vendor/mo-git-blame
+	url = https://github.com/mbunkus/mo-git-blame.git
