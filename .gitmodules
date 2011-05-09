@@ -31,3 +31,6 @@
 [submodule "vendor/color-theme-solarized"]
 	path = vendor/color-theme-solarized
 	url = https://github.com/sellout/emacs-color-theme-solarized.git
+[submodule "vendor/magit"]
+	path = vendor/magit
+	url = https://github.com/magit/magit.git
