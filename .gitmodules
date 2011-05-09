@@ -13,9 +13,6 @@
 [submodule "vendor/rinari"]
 	path = vendor/rinari
 	url = git://github.com/eschulte/rinari.git
-[submodule "vendor/magit"]
-	path = vendor/magit
-	url = git://gitorious.org/magit/mainline.git
 [submodule "vendor/mo-git-blame"]
 	path = vendor/mo-git-blame
 	url = git://git.bunkus.org/mo-git-blame.git
