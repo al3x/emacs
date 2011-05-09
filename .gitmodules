@@ -10,9 +10,6 @@
 [submodule "vendor/rails-reloaded"]
 	path = vendor/rails-reloaded
 	url = git://github.com/dima-exe/emacs-rails-reloaded.git
-[submodule "vendor/rinari"]
-	path = vendor/rinari
-	url = git://github.com/eschulte/rinari.git
 [submodule "vendor/markdown-mode"]
 	path = vendor/markdown-mode
 	url = git://jblevins.org/git/markdown-mode.git
