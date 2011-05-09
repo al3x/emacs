@@ -31,3 +31,6 @@
 [submodule "vendor/mo-git-blame"]
 	path = vendor/mo-git-blame
 	url = https://github.com/mbunkus/mo-git-blame.git
+[submodule "vendor/rvm"]
+	path = vendor/rvm
+	url = https://github.com/senny/rvm.el.git
