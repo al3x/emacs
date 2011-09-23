@@ -1,5 +1,8 @@
 (setq default-input-method "MacOSX")
 
+; don't use Lion press-and-hold
+(ns-set-resource nil "ApplePressAndHoldEnabled" "NO")
+
 ; option/alt is meta key
 (setq mac-command-key-is-meta nil)
 
