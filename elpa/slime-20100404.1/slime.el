@@ -6,7 +6,7 @@
 ;;     Copyright (C) 2007,2008,2009  Helmut Eller, Tobias C. Rittweiler
 ;; Authors: Eric Marsden, Luke Gorrie, Helmut Eller, Tobias C. Rittweiler
 ;; URL: http://common-lisp.net/project/slime/
-;; Version: 20100404
+;; Version: 20100404.1
 ;; Keywords: languages, lisp, slime
 ;; Adapted-by: Phil Hagelberg
 ;;
@@ -135,9 +135,7 @@ Return nil if the ChangeLog file cannot be found."
           (message "Slime ChangeLog dates %s." date))
         date))))
 
-(defvar slime-protocol-version nil)
-(setq slime-protocol-version
-      (eval-when-compile (slime-changelog-date)))
+(defvar slime-protocol-version "20100404")
 
 
 ;;;; Customize groups
@@ -203,6 +201,9 @@ The default is nil, as this feature can be a security risk."
   "Port to use as the default for `slime-connect'."
   :type 'integer
   :group 'slime-lisp)
+
+(put 'slime-lisp-host 'safe-local-variable 'stringp)
+(put 'slime-port 'safe-local-variable 'integerp)
 
 (defvar slime-net-valid-coding-systems
   '((iso-latin-1-unix nil "iso-latin-1-unix")

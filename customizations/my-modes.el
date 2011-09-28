@@ -98,13 +98,13 @@
     (clojure-mode . slime-complete-symbol)))
 
 ; paredit
-(autoload 'paredit-mode "paredit"
-  "Minor mode for pseudo-structurally editing Lisp code."
-  t)
-  (mapc (lambda (mode)
-    (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
-     (add-hook hook (lambda () (paredit-mode 1)))))
-    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
+;(autoload 'paredit-mode "paredit"
+;  "Minor mode for pseudo-structurally editing Lisp code."
+;  t)
+;  (mapc (lambda (mode)
+;    (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
+;     (add-hook hook (lambda () (paredit-mode 1)))))
+;    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
 
 ; Clojure Debugging
 (setq cdt-dir "/Users/al3x/src/third_party/clojure/cdt")

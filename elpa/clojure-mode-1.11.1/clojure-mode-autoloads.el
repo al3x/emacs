@@ -3,12 +3,12 @@
 ;;; Code:
 
 
-;;;### (autoloads (clojure-enable-slime-on-existing-buffers clojure-mode)
-;;;;;;  "clojure-mode" "clojure-mode.el" (19667 16829))
+;;;### (autoloads (clojure-enable-slime-on-existing-buffers clojure-jack-in
+;;;;;;  clojure-mode) "clojure-mode" "clojure-mode.el" (20095 51565))
 ;;; Generated autoloads from clojure-mode.el
 
 (autoload 'clojure-mode "clojure-mode" "\
-Major mode for editing Clojure code - similar to Lisp mode..
+Major mode for editing Clojure code - similar to Lisp mode.
 Commands:
 Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
@@ -21,8 +21,13 @@ if that value is non-nil.
 
 \(fn)" t nil)
 
+(autoload 'clojure-jack-in "clojure-mode" "\
+
+
+\(fn)" t nil)
+
 (autoload 'clojure-enable-slime-on-existing-buffers "clojure-mode" "\
-Not documented
+
 
 \(fn)" t nil)
 
@@ -32,7 +37,7 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads nil nil ("clojure-mode-pkg.el") (19667 16829 345632))
+;;;### (autoloads nil nil ("clojure-mode-pkg.el") (20095 51565 754944))
 
 ;;;***
 
