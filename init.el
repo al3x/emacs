@@ -27,7 +27,6 @@
 (vendor 'centered-cursor-mode)
 (vendor 'yaml-mode)
 (vendor 'textile-minor-mode)
-(vendor 'save-visited-files)
 (vendor 'thrift-mode)
 
 ; load third-party modes that the vendor function can't handle
