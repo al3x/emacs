@@ -52,26 +52,6 @@
 (setq auto-mode-alist (cons '("Capfile" . ruby-mode) auto-mode-alist))
 (setq auto-mode-alist (cons '("\\.rake" . ruby-mode) auto-mode-alist))
 
-; nxhtml (HTML/ERB template support)
-(load "~/.emacs.d/vendor/nxhtml/autostart.el")
-(setq
-  nxhtml-global-minor-mode t
-  mumamo-chunk-coloring 'submode-colored
-  nxhtml-skip-welcome t
-  indent-region-mode t
-  rng-nxml-auto-validate-flag nil
-  nxml-degraded t)
-
-(add-to-list 'auto-mode-alist '("\\.html\\.erb\\'" . eruby-nxhtml-mumamo))
-
-(eval-after-load 'nxhtml
-  '(eval-after-load 'color-theme
-     (custom-set-faces
-       '(mumamo-background-chunk-major ((((class color) (min-colors 88) (background dark)) (:background "#242424"))))
-       '(mumamo-background-chunk-submode1 ((((class color) (min-colors 88) (background dark)) (:background "#373736"))))
-)))
-
-
 ; Thrift
 (require 'thrift-mode)
 
