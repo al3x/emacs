@@ -24,7 +24,6 @@
 
 ; load third-party modes
 ; note: these are configured in customizations/my-modes.el
-(vendor 'centered-cursor-mode)
 (vendor 'textile-minor-mode)
 (vendor 'thrift-mode)
 
