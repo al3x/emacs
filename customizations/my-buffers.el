@@ -42,7 +42,7 @@
 (setq ido-use-virtual-buffers t)
 
 ; kill ring browsing
-(require 'browse-kill-ring+)
+(require 'browse-kill-ring)
 (browse-kill-ring-default-keybindings)
 
 ; automatically clean up old buffers
