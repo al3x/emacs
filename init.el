@@ -27,7 +27,6 @@
 (vendor 'color-theme)
 (vendor 'centered-cursor-mode)
 (vendor 'yaml-mode)
-(vendor 'rinari)
 (vendor 'textile-minor-mode)
 (vendor 'save-visited-files)
 (vendor 'dired+)

@@ -52,10 +52,6 @@
 (setq auto-mode-alist (cons '("Capfile" . ruby-mode) auto-mode-alist))
 (setq auto-mode-alist (cons '("\\.rake" . ruby-mode) auto-mode-alist))
 
-; Rails
-(require 'rinari)
-(setq rinari-tags-file-name "TAGS")
-
 ; nxhtml (HTML/ERB template support)
 (load "~/.emacs.d/vendor/nxhtml/autostart.el")
 (setq
