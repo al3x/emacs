@@ -25,7 +25,6 @@
 ; load third-party modes
 ; note: these are configured in customizations/my-modes.el
 (vendor 'color-theme)
-(vendor 'textmate)
 (vendor 'centered-cursor-mode)
 (vendor 'browse-kill-ring)
 (vendor 'yaml-mode)

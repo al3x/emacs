@@ -1,6 +1,3 @@
-[submodule "vendor/textmate"]
-	path = vendor/textmate
-	url = git://github.com/defunkt/textmate.el.git
 [submodule "vendor/markdown-mode"]
 	path = vendor/markdown-mode
 	url = git://jblevins.org/git/markdown-mode.git
