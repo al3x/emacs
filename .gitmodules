@@ -1,9 +1,3 @@
-[submodule "vendor/smart-tab"]
-	path = vendor/smart-tab
-	url = https://github.com/sroccaserra/smart-tab.git
-[submodule "vendor/full-ack"]
-	path = vendor/full-ack
-	url = https://github.com/nschum/full-ack.git
 [submodule "vendor/rinari"]
 	path = vendor/rinari
 	url = https://github.com/eschulte/rinari.git

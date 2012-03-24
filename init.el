@@ -28,12 +28,10 @@
 (vendor 'centered-cursor-mode)
 (vendor 'yaml-mode)
 (vendor 'rinari)
-(vendor 'full-ack)
 (vendor 'textile-minor-mode)
 (vendor 'save-visited-files)
 (vendor 'dired+)
 (vendor 'thrift-mode)
-(vendor 'smart-tab)
 
 ; load third-party modes that the vendor function can't handle
 (add-to-list 'load-path "~/.emacs.d/vendor/scala")
