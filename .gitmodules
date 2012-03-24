@@ -10,18 +10,6 @@
 [submodule "vendor/full-ack"]
 	path = vendor/full-ack
 	url = https://github.com/nschum/full-ack.git
-[submodule "vendor/color-theme-solarized"]
-	path = vendor/color-theme-solarized
-	url = https://github.com/sellout/emacs-color-theme-solarized.git
-[submodule "vendor/magit"]
-	path = vendor/magit
-	url = https://github.com/magit/magit.git
-[submodule "vendor/mo-git-blame"]
-	path = vendor/mo-git-blame
-	url = https://github.com/mbunkus/mo-git-blame.git
-[submodule "vendor/rvm"]
-	path = vendor/rvm
-	url = https://github.com/senny/rvm.el.git
 [submodule "vendor/rinari"]
 	path = vendor/rinari
 	url = https://github.com/eschulte/rinari.git

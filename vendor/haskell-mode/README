@@ -1,6 +1,6 @@
 Haskell Mode for Emacs                                        -*-text-*-
 ----------------------
-Version number: v2.7.0.
+Version number: v2.8.0.
 
 This is the Haskell mode package for Emacs.  Its use should be mostly
 self-explanatory if you're accustomed to Emacs.

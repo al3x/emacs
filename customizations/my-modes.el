@@ -44,10 +44,6 @@
 ; JSON
 (add-to-list 'auto-mode-alist '("\\.json$" . js-mode))
 
-; RVM
-(require 'rvm)
-(rvm-use-default)
-
 ; Ruby
 (autoload 'ruby-mode "ruby-mode" "Mode for editing ruby source files" t)
 (autoload 'run-ruby "inf-ruby" "Run an inferior Ruby process")
@@ -98,18 +94,13 @@
     (clojure-mode . slime-complete-symbol)))
 
 ; paredit
-;(autoload 'paredit-mode "paredit"
-;  "Minor mode for pseudo-structurally editing Lisp code."
-;  t)
-;  (mapc (lambda (mode)
-;    (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
-;     (add-hook hook (lambda () (paredit-mode 1)))))
-;    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
-
-; Clojure Debugging
-(setq cdt-dir "/Users/al3x/src/third_party/clojure/cdt")
-(setq cdt-source-path "/Users/al3x/src/third_party/clojure/clojure-1.2.0/src/jvm:/Users/al3x/src/third_party/clojure/clojure-1.2.0/src/clj:/Users/al3x/src/third_party/clojure/clojure-contrib-1.2.0/src/main/clojure:/Users/al3x/src/banksimple/Clothesline/src:/Users/al3x/src/banksimple/Clothesline/test")
-(load-file (format "%s/ide/emacs/cdt.el" cdt-dir))
+(autoload 'paredit-mode "paredit"
+  "Minor mode for pseudo-structurally editing Lisp code."
+  t)
+  (mapc (lambda (mode)
+    (let ((hook (intern (concat (symbol-name mode) "-mode-hook"))))
+     (add-hook hook (lambda () (paredit-mode 1)))))
+    '(emacs-lisp lisp inferior-lisp slime slime-repl clojure))
 
 ; Scheme
 (setq scheme-program-name "csi -:c")

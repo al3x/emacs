@@ -5,7 +5,6 @@
 
 ; mousing
 (setq mac-emulate-three-button-mouse nil)
-(pc-selection-mode t)
 
 ; encoding
 (prefer-coding-system 'utf-8)

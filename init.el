@@ -32,17 +32,12 @@
 (vendor 'rinari)
 (vendor 'full-ack)
 (vendor 'textile-minor-mode)
-(vendor 'magit)
 (vendor 'save-visited-files)
 (vendor 'dired+)
-(vendor 'minimap)
 (vendor 'thrift-mode)
-(vendor 'mo-git-blame)
 (vendor 'smart-tab)
 (vendor 'haskell-mode)
-(vendor 'rvm)
 (vendor 'markdown-mode)
-(vendor 'color-theme-solarized)
 
 ; load third-party modes that the vendor function can't handle
 (add-to-list 'load-path "~/.emacs.d/vendor/scala")
@@ -57,6 +52,3 @@
 
 ; start a server for usage with emacsclient
 ;(add-hook 'after-init-hook 'server-start)
-
-
-

@@ -1,3 +1,65 @@
+Fri Jul  2 14:18:54 CEST 2010  svein.ove@aas.no
+  tagged 2.8.0
+  
+  * Minimal indentation support for arrow syntax
+  
+  * Avoid opening a new inf-haskell window if one is already visible.
+    Windows on other virtual desktops or iconified frames don't count.
+  
+  * Force comint-process-echoes to nil
+  
+  * Autolaunch haskell-mode for files starting with #!/usr/bin/runghc
+    and similar
+  
+  * Added minimal major mode for parsing GHC core files, courtesy of Johan Tibell.
+    There is a corresponding Haskell menu entry.
+  
+  * Allow configuration of where-clause indentation; M-x customize-group
+    haskell-indentation.
+
+Fri Jul  2 14:18:38 CEST 2010  svein.ove@aas.no
+  * Remember to include ghc-core.el
+
+Fri Jul  2 14:13:37 CEST 2010  svein.ove@aas.no
+  * Finalized 2.8.0
+
+Tue Jun  1 06:19:12 CEST 2010  Iku Iwasa <iku.iwasa@gmail.com>
+  * Introduce `haskell-indentation-where-{pre,post}-offset' for offsets around `where' keyword.
+
+Fri Jul  2 14:01:11 CEST 2010  svein.ove@aas.no
+  * Allow underscores in identifiers
+
+Fri Jul  2 13:55:21 CEST 2010  svein.ove@aas.no
+  * New major mode: GHC-core
+
+Tue Mar  9 07:33:28 CET 2010  Daniel Sch[_\c3_][_\bc_]ssler <daniels@community.haskell.org>
+  * Add interpreter-mode-alist entries (this autolaunches haskell-mode for files beginning with #!/usr/bin/runghc etc.)
+
+Fri Jul  2 12:58:04 CEST 2010  svein.ove@aas.no
+  * Set comint-process-echoes to nil. Which is the default.
+
+Fri Jul  2 12:36:25 CEST 2010  svein.ove@aas.no
+  * Print a proper error if inferior-haskell-load-file is called on a buffer without an associated file
+
+Fri Jul  2 12:34:28 CEST 2010  svein.ove@aas.no
+  * Avoid opening a new inf-haskell window is one is already visible
+
+Fri Jul  2 12:16:37 CEST 2010  svein.ove@aas.no
+  * Minimal support for arrow syntax
+
+Tue Dec  8 11:34:42 CET 2009  Dave Love <fx@gnu.org>
+  * Add options to mode hook.
+  They're capitalized-words-mode and turn-on-haskell-decl-scan.
+
+Sat Dec 12 22:26:34 CET 2009  svein.ove@aas.no
+  * Use a special current-column function for haskell. Fixes #12.
+
+Wed Dec  2 17:17:17 CET 2009  svein.ove@aas.no
+  * Turn off parse-sexp-ignore-comments (?)
+
+Wed Dec  2 17:15:38 CET 2009  svein.ove@aas.no
+  * Avoid treating -->, etc., as comments
+
 Mon Nov 30 16:03:38 CET 2009  svein.ove@aas.no
   tagged 2.7.0
 

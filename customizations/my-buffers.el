@@ -1,7 +1,3 @@
-; recent files
-(require 'recentf)
-(setq recentf-max-saved-items 100)
-
 ; dired
 (require 'dired+)
 (setq dired-recursive-deletes 'top)
@@ -43,6 +39,7 @@
 (setq ido-enable-flex-matching t) ; case insensitive matching
 (add-to-list 'ido-ignore-files "\\.DS_Store")
 (setq ido-create-new-buffer 'always) ; always create a new buffer with Ido
+(setq ido-use-virtual-buffers t)
 
 ; kill ring browsing
 (require 'browse-kill-ring+)
