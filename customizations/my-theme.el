@@ -1,10 +1,5 @@
-
-
 (require 'color-theme)
 (require 'color-theme-solarized)
-
-(eval-after-load 'color-theme
-  (progn (color-theme-initialize)))
 
 (setq my-color-themes (list 'color-theme-solarized-dark 'color-theme-solarized-light))
 
