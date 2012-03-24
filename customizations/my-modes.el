@@ -33,6 +33,13 @@
 (add-to-list 'auto-mode-alist '("\\.mkd$" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.md$" . markdown-mode))
 
+; Mustache and CTemplate
+(require 'mustache-mode)
+(setq auto-mode-alist (cons '("\\.tpl$" . tpl-mode) auto-mode-alist))
+(add-to-list 'auto-mode-alist '("\\.mustache$" . tpl-mode))
+(autoload 'tpl-mode "tpl-mode" "Major mode for editing CTemplate files." t)
+(add-hook 'tpl-mode-hook '(lambda () (font-lock-mode 1)))
+
 ; YAML
 (autoload 'yaml-mode "YAML" nil t)
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
