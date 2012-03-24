@@ -34,7 +34,6 @@
 (vendor 'dired+)
 (vendor 'thrift-mode)
 (vendor 'smart-tab)
-(vendor 'haskell-mode)
 (vendor 'markdown-mode)
 
 ; load third-party modes that the vendor function can't handle
