@@ -26,7 +26,6 @@
 ; note: these are configured in customizations/my-modes.el
 (vendor 'color-theme)
 (vendor 'centered-cursor-mode)
-(vendor 'browse-kill-ring)
 (vendor 'yaml-mode)
 (vendor 'rinari)
 (vendor 'full-ack)
