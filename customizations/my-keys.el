@@ -13,3 +13,7 @@
 (global-set-key (kbd "C-x C-c") 'execute-extended-command)
 (global-set-key (kbd "C-x c") 'execute-extended-command)
 (global-set-key (kbd "C-x m") 'execute-extended-command)
+
+; shell here
+(require 'shell-here)
+(define-key (current-global-map) "\C-c!" 'shell-here)
