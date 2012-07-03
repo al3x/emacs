@@ -1,3 +1,7 @@
+; Flymake
+(require 'flymake)
+(require 'flymake-cursor)
+
 ; TextMate
 (require 'textmate)
 (textmate-mode t)
@@ -41,7 +45,7 @@
 (add-hook 'tpl-mode-hook '(lambda () (font-lock-mode 1)))
 
 ; YAML
-(autoload 'yaml-mode "YAML" nil t)
+(require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
 (add-to-list 'auto-mode-alist '("\\.yml$" . yaml-mode))
 
@@ -87,3 +91,19 @@
 
 ; Scheme
 (setq scheme-program-name "csi -:c")
+
+; Go
+(require 'go-mode-load)
+(add-hook 'go-mode-hook
+          #'(lambda () (setq indent-tabs-mode nil)))
+(when (load "flymake" t)
+  (defun flymake-go-init ()
+     (list "go" (list "build"))
+     )
+   (add-to-list 'flymake-allowed-file-name-masks '("\\.go\\'" flymake-go-init))
+)
+
+; test case mode
+(add-hook 'find-file-hook 'enable-test-case-mode-if-test)
+(add-hook 'compilation-finish-functions
+          'test-case-compilation-finish-run-all)
