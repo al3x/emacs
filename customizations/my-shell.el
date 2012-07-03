@@ -1,5 +1,5 @@
 ; sane path
-(setq path "/bin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/mysql/bin:/usr/local/google_appengine")
+(setq path "/bin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/mysql/bin:/Users/al3x/src/third_party/go/go/bin/")
 (setenv "PATH" path)
 
 ; can't write over prompt, that would be weird
