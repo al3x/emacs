@@ -11,8 +11,8 @@
   '(setq hippie-expand-try-functions-list
          (remove 'try-expand-line hippie-expand-try-functions-list)))
 
-; disable auto-save files (#foo#)
-(setq auto-save-default nil)
+; autosave files in tmp dir
+(setq auto-save-file-name-transforms `((".*" ,temporary-file-directory t)))
 
 ; disable backup files (foo~)
 (setq backup-inhibited t)
