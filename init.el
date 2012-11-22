@@ -29,7 +29,7 @@
 (vendor 'fringe-helper)
 
 ; load third-party modes that the vendor function can't handle
-(add-to-list 'load-path "~/.emacs.d/vendor/scala")
+(add-to-list 'load-path "~/.emacs.d/vendor/scala-mode2")
 
 ; load personal customizations (keybindings, colors, etc.)
 (mapcar 'load-directory '("~/.emacs.d/customizations"))
@@ -41,3 +41,25 @@
 
 ; start a server for usage with emacsclient
 ;(add-hook 'after-init-hook 'server-start)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(safe-local-variable-values (quote ((buffer-file-coding-system . utf-8-unix) (org-export-html-style-include-scripts)))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(diff-added ((t (:foreground "#559944"))))
+ '(diff-context ((t nil)))
+ '(diff-file-header ((((class color) (min-colors 88) (background dark)) (:foreground "RoyalBlue1"))))
+ '(diff-function ((t (:foreground "#00bbdd"))))
+ '(diff-header ((((class color) (min-colors 88) (background dark)) (:foreground "RoyalBlue1"))))
+ '(diff-hunk-header ((t (:foreground "#fbde2d"))))
+ '(diff-nonexistent ((t (:inherit diff-file-header :strike-through nil))))
+ '(diff-refine-change ((((class color) (min-colors 88) (background dark)) (:background "#182042"))))
+ '(diff-removed ((t (:foreground "#de1923"))))
+ '(flymake-errline ((t :underline "red")))
+ '(flymake-warnline ((t :underline "green"))))
