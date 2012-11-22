@@ -3,7 +3,8 @@ the ENhanced Scala Interaction Mode for Emacs
 
 # Links
 - [ Downloads ](https://github.com/aemoncannon/ensime/downloads)
-- [ Manual ](http://aemon.com/file_dump/ensime_manual.html)
+- [ Manual ](http://aemoncannon.github.com/ensime/index.html)
+- [ Manual as PDF ](http://aemoncannon.github.com/ensime/manual.pdf)
 - [ Discussion Group ](http://groups.google.com/group/ensime?hl=en)
 
 
@@ -21,7 +22,6 @@ the ENhanced Scala Interaction Mode for Emacs
 - Source Formatting
 - AST-based selection
 - Supports sbt7,10,11
-- Supports Maven,Ivy build descriptions
 - Embedded sbt shell
 - REPL
 - Debug support
@@ -46,7 +46,7 @@ the ENhanced Scala Interaction Mode for Emacs
 
 ## Documentation
 
-- [The ENSIME User Manual](http://aemon.com/file_dump/ensime_manual.html)
+- [The ENSIME User Manual](http://aemoncannon.github.com/ensime/index.html)
 
 
 ## Getting Started
@@ -72,7 +72,7 @@ Add the following lines to your .emacs file:
     (add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
 
 
-__3) If you are using sbt, install the ENSIME Sbt Plugin (otherwise, see the [manual](http://aemon.com/file_dump/ensime_manual.html#tth_sEc3.1.2))__
+__3) If you are using sbt, install the ENSIME Sbt Plugin (otherwise, see the [manual](http://aemoncannon.github.com/ensime/index.html#tth_sEc3.1.2))__
 
 Add the following lines to your project/plugins.sbt file:
 
@@ -82,7 +82,9 @@ Replace VERSION with the latest version of the plugin, available on [the plugin 
     
     ensime generate
 
-You should now have a .ensime file in the root of your project. There's no need to edit this file manually as you can now specify ENSIME settings directly from your sbt build file. Check the [manual](http://aemon.com/file_dump/ensime_manual.html#tth_sEc3.1.1) for details.
+Note: Currently, it may be necessary to first delete your project/target directories before running 'ensime generate'.
+
+You should now have a .ensime file in the root of your project. There's no need to edit this file manually as you can now specify ENSIME settings directly from your sbt build file. Check the [manual](http://aemoncannon.github.com/ensime/index.html#tth_sEc3.1.1) for details.
 
 
 __5) Start ENSIME__

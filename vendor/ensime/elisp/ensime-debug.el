@@ -19,6 +19,8 @@
 ;;     Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 ;;     MA 02111-1307, USA.
 
+(eval-and-compile
+  (require 'cl))
 
 (defgroup ensime-db nil
   "Customization of ensime debugger support."
@@ -36,14 +38,19 @@
   '((((class color) (background dark)) (:background "DarkGreen"))
     (((class color) (background light)) (:background "LightGreen"))
     (t (:bold t)))
-  "Face used for marking lines with breakpoints."
+  "Face used for marking lines with a pending breakpoints."
   :group 'ensime-ui)
 
 (defface ensime-marker-face
   '((((class color) (background dark)) (:background "DarkGoldenrod4"))
     (((class color) (background light)) (:background "DarkGoldenrod2"))
     (t (:bold t)))
-  "Face used for marking lines with breakpoints."
+  "Face used for marking the current point of execution."
+  :group 'ensime-ui)
+
+(defface ensime-writable-value-face
+  '((t (:bold t)))
+  "Face used for marking editable values."
   :group 'ensime-ui)
 
 (defvar ensime-db-default-main-args nil
@@ -52,6 +59,11 @@
 (defvar ensime-db-default-main-class nil
   "History of main class to debugger.")
 
+(defvar ensime-db-default-hostname "localhost"
+  "History of vm hostname.")
+
+(defvar ensime-db-default-port "9999"
+  "History of vm port.")
 
 (defvar ensime-db-history nil
   "History of argument lists passed to jdb.")
@@ -59,6 +71,7 @@
 (defvar ensime-db-buffer-name "*ensime-debug-session*")
 (defvar ensime-db-value-buffer "*ensime-debug-value*")
 (defvar ensime-db-backtrace-buffer "*ensime-db-backtrace-buffer*")
+(defvar ensime-db-output-buffer "*ensime-db-output-buffer*")
 
 (defvar ensime-db-active-thread-id nil
   "The unique id of the which is currently receiving debug
@@ -68,21 +81,40 @@
   "Hook called whenever the debugger suspends a thread.")
 
 
+;; Helpers for building DebugLocation structures
+(defun ensime-db-make-obj-ref-location (obj-id)
+  `(:type reference :object-id ,obj-id))
+(defun ensime-db-make-array-el-location (obj-id index)
+  `(:type element :object-id ,obj-id :index ,index))
+(defun ensime-db-make-obj-field-location (obj-id field-name)
+  `(:type field :object-id ,obj-id :name ,field-name))
+(defun ensime-db-make-stack-slot-location (thread-id frame offset)
+  `(:type slot :thread-id ,thread-id :frame ,frame :offset ,offset))
+
+
 ;; Event Handling
 
 (defun ensime-db-handle-event (evt)
   (case (plist-get evt :type)
+    (output (ensime-db-handle-output evt))
     (start (ensime-db-handle-start evt))
     (step (ensime-db-handle-step evt))
     (breakpoint (ensime-db-handle-break-hit evt))
     (death (ensime-db-handle-shutdown evt))
     (disconnect (ensime-db-handle-shutdown evt))
     (exception (ensime-db-handle-exception evt))
+    (threadStart)
+    (threadDeath)
     (otherwise (ensime-db-handle-unknown-event evt))
     ))
 
 (defun ensime-db-handle-unknown-event (evt)
   (message "Unknown event: %s" evt))
+
+(defun ensime-db-handle-output (evt)
+  (with-current-buffer (get-buffer-create
+			ensime-db-output-buffer)
+    (insert (plist-get evt :body))))
 
 (defun ensime-db-handle-exception (evt)
   (setq ensime-db-active-thread-id
@@ -91,12 +123,19 @@
   (message "Exception on thread %s..."
 	   (plist-get evt :thread-id))
 
-  (when-let (exc-val (ensime-rpc-debug-value-for-id
-		      (plist-get evt :exception)))
+  (when (and (plist-get evt :file)
+	     (plist-get evt :line))
+    (ensime-db-set-debug-marker
+     (plist-get evt :file)
+     (plist-get evt :line)))
+
+  (when-let (exc-val (ensime-rpc-debug-value
+		      (ensime-db-make-obj-ref-location
+		       (plist-get evt :exception))))
     (ensime-ui-show-nav-buffer
      ensime-db-value-buffer
      exc-val t))
-;;  (run-hooks 'ensime-db-thread-suspended-hook)
+  ;;  (run-hooks 'ensime-db-thread-suspended-hook)
   )
 
 (defun ensime-db-handle-start (evt)
@@ -108,9 +147,9 @@
   (ensime-db-set-debug-marker
    (plist-get evt :file)
    (plist-get evt :line))
-  (message "Suspended thread %s at %s : %s"
-	   (plist-get evt :thread-id)
-	   (plist-get evt :file)
+  (message "Thread '%s' suspended at %s : %s"
+	   (plist-get evt :thread-name)
+	   (file-name-nondirectory (plist-get evt :file))
 	   (plist-get evt :line))
   (run-hooks 'ensime-db-thread-suspended-hook)
   )
@@ -121,6 +160,10 @@
   (ensime-db-set-debug-marker
    (plist-get evt :file)
    (plist-get evt :line))
+  (message "Thread '%s' hit breakpoint at %s : %s"
+	   (plist-get evt :thread-name)
+	   (file-name-nondirectory (plist-get evt :file))
+	   (plist-get evt :line))
   (run-hooks 'ensime-db-thread-suspended-hook)
   )
 
@@ -193,20 +236,6 @@
      (message "No active debug thread.")))
 
 
-(defun ensime-db-value-short-name (val)
-  "Get a short, pretty name for a debug value."
-  (case (plist-get val :val-type)
-    (prim (format "%s"
-		  (plist-get val :value)))
-    (obj (format "Instance of %s"
-		 (plist-get val :type-name)))
-    (arr (format "Array[%s] of length %s"
-		 (plist-get val :element-type-name)
-		 (plist-get val :length)))
-    (str (plist-get val :string-value))
-    (otherwise (format "%s" val))
-    ))
-
 
 (defun ensime-db-value-p (val)
   (not (null (plist-get val :val-type))))
@@ -219,28 +248,33 @@
    val
    (list
     :header
-    (lambda (thread-id)
+    (lambda (thread-id thread-name)
       (ensime-insert-with-face
-       (format "Thread: %s\n\n" thread-id)
+       (format "Thread: %s\n" thread-name)
        font-lock-comment-face))
 
     :frame
-    (lambda (class-name method-name file line)
-      (insert "\n")
-      (ensime-insert-link
-       (format "[%s::%s  %s:%s]\n"
-	       class-name method-name
-	       (file-name-nondirectory file)
-	       line)
-       file
-       nil
-       font-lock-type-face
-       line
-       ))
+    (lambda (class-name method-name file line this-obj-id)
+      (insert "\n\n")
+      (let ((heading (format "%s at %s:%s"
+			     method-name
+			     (file-name-nondirectory file)
+			     line)))
+	(ensime-insert-with-face (make-string (length heading) ?\-)
+				 font-lock-constant-face)
+	(insert "\n")
+	(ensime-insert-link heading
+			    file nil font-lock-constant-face line)
+	(insert "\n")
+	(ensime-insert-with-face (make-string (length heading) ?\-)
+				 font-lock-constant-face)
+	(insert "\n")
+	font-lock-constant-face)
+      (ensime-db-ui-insert-object-link "this" this-obj-id)
+      (insert "\n"))
 
     :local-var
-    (lambda (name value)
-      (ensime-db-ui-insert-value-link name value))
+    'ensime-db-ui-insert-stack-var
 
     )))
 
@@ -249,61 +283,99 @@
   (list :val-type 'ref :object-id
 	(plist-get val :object-id)))
 
-
-(defun ensime-db-ui-insert-value-link (name val)
-  (ensime-db-visit-value
-   val '() '()
-
-   (list
-    :primitive
-    (lambda (val path)
-      (insert (format "%s : %s = %s\n"
-		      name
-		      (plist-get val :type-name)
-		      (plist-get val :value))))
-
-    :string
-    (lambda (val path)
-      (ensime-insert-with-face
-       (format "%s = " name)
-       font-lock-keyword-face)
-      (ensime-insert-with-face
-       (format "\"%s\"\n"
-	       (ensime-escape-control-chars
-		(plist-get val :string-value)))
-       'font-lock-string-face))
-
-    :object
-    (lambda (val path)
-      (let ((ref (ensime-db-obj-to-ref val)))
-	(ensime-insert-action-link
-	 (format "%s : %s\n" name (plist-get val :type-name))
-	 `(lambda (x)
-	    (ensime-ui-show-nav-buffer
-	     ensime-db-value-buffer
-	     ',ref t nil))
-	 font-lock-keyword-face)))
-
-    :array
-    (lambda (val path)
-      (let ((ref (ensime-db-obj-to-ref val)))
-	(ensime-insert-action-link
-	 (format "%s : Array[%s]\n"
-		 name
-		 (plist-get val :element-type-name))
-	 `(lambda (x)
-	    (ensime-ui-show-nav-buffer
-	     ensime-db-value-buffer
-	     ',ref t nil))
-	 font-lock-keyword-face)))
-
-    :array-el (lambda (val i path))
-    :object-field (lambda (val f path))
-    :null (lambda (null path))
-
-    )))
+(defun ensime-db-commit-writable-values ()
+  "For each dirty writable value overlay in buffer, commit that value
+ to the database using the corresponding writer-func"
+  (interactive)
+  (dolist (ov (overlays-in (point-min) (point-max)))
+    (when (and (overlay-get ov 'ensime-debug-value)
+	       (overlay-get ov 'is-dirty))
+      (let ((writer-func (overlay-get ov 'writer-func))
+	    (value (ensime-chomp (buffer-substring-no-properties
+				  (overlay-start ov)
+				  (overlay-end ov)))))
+	(let ((status (funcall writer-func value)))
+	  (when status
+	    (overlay-put ov 'face 'ensime-writable-value-face))
+	  )))))
 
 
+(defun ensime-db-ui-handle-writable-value-modification
+  (ov is-after beg end &optional pre-mod-length)
+  "Invoked by emacs overlay system when editable value is modified. Handles
+ updating of UI to represent edited state."
+  (when is-after
+    (overlay-put ov 'face 'ensime-errline-highlight)
+    (overlay-put ov 'is-dirty t)
+    (message "Type C-c C-c to commit all changes to the debugged JVM.")))
+
+
+(defun ensime-db-ui-make-writable-value (start end writer-func)
+  "Make a range of characters writable in the current buffer. Edits to the
+ will result in ui change to indicate dirty state."
+  (let ((ov (make-overlay start end (current-buffer) t t)))
+    (overlay-put ov 'face 'ensime-writable-value-face)
+    (overlay-put ov 'ensime-debug-value t)
+    (overlay-put ov 'writer-func writer-func)
+    (overlay-put ov 'local-map (let ((map (make-sparse-keymap)))
+				 (define-key map (kbd "C-c C-c")
+				   'ensime-db-commit-writable-values)
+				 map
+				 ))
+    (let ((hooks (list 'ensime-db-ui-handle-writable-value-modification)))
+      (overlay-put ov 'modification-hooks hooks)
+      (overlay-put ov 'insert-in-front-hooks hooks)
+      (overlay-put ov 'insert-behind-hooks hooks))))
+
+(defun ensime-db-ui-insert-stack-var
+  (thread-id frame-index index name summary type-name)
+  "Inserts a backtrace entry for a single local variable.
+ The value will be inserted as a writable value."
+  (let ((inhibit-modification-hooks t))
+    (ensime-insert-action-link
+     name
+     `(lambda (x)
+	(let ((stack-val (ensime-rpc-debug-value
+			  (ensime-db-make-stack-slot-location
+			   ,thread-id ,frame-index ,index))))
+	  (ensime-ui-show-nav-buffer
+	   ensime-db-value-buffer
+	   stack-val t nil)))
+     font-lock-keyword-face)
+    (insert ": ")
+    (ensime-insert-with-face
+     (ensime-last-name-component type-name)
+     'font-lock-type-face)
+    (insert " = ")
+    (let ((val-start (point))
+	  (val-end))
+      (insert summary)
+      (setq val-end (point))
+      (insert "\n")
+
+      ;; Make overlay after the fact so we don't tread
+      ;; inside our overlays as we go.
+      (ensime-db-ui-make-writable-value
+       (- val-start 1) val-end
+       `(lambda (value) (ensime-rpc-debug-set-value
+			 (ensime-db-make-stack-slot-location
+			  ,thread-id
+			  ,frame-index
+			  ,index)
+			 value))))))
+
+
+(defun ensime-db-ui-insert-object-link (text obj-id)
+  (let ((ref (list :val-type 'ref :object-id obj-id)))
+    (ensime-insert-action-link
+     text
+     `(lambda (x)
+	(ensime-ui-show-nav-buffer
+	 ensime-db-value-buffer
+	 ',ref t nil)))))
+
+(defun ensime-db-ui-indent (width)
+  (insert (make-string width ?\ )))
 
 (defun ensime-db-ui-insert-value (val expansion)
   (ensime-db-visit-value
@@ -312,87 +384,44 @@
    (list
     :primitive
     (lambda (val path)
-      (insert (make-string (* 2 (length path)) ?\ ))
-      (insert (format "%s : %s\n"
+      (ensime-db-ui-indent (length path))
+      (insert (format "%s: %s\n"
 		      (ensime-escape-control-chars
-		       (plist-get val :value))
+		       (plist-get val :summary))
 		      (plist-get val :type-name))))
 
 
     :string
     (lambda (val path)
-      (insert (make-string (* 2 (length path)) ?\ ))
+      (ensime-db-ui-indent (length path))
       (ensime-insert-with-face
-       (format "\"%s\"\n"
+       (format "%s\n"
 	       (ensime-escape-control-chars
-		(plist-get val :string-value)))
-       'font-lock-string-face)
-      (insert (make-string (length path) ?\ )))
-
+		(plist-get val :summary)))
+       'font-lock-string-face))
 
 
     :object
     (lambda (val path)
-      (insert (make-string (* 2 (length path)) ?\ ))
+      (ensime-db-ui-indent (length path))
       (insert (format "Instance of %s\n"
-		      (plist-get val :type-name)))
-      (insert (make-string (length path) ?\ )))
+		      (plist-get val :type-name))))
 
 
 
     :object-field
     (lambda (val f path)
       (let* ((name (plist-get f :name))
-	     (of-object-id (plist-get val :object-id)))
+	     (summary (plist-get f :summary))
+	     (type-name (plist-get f :type-name)))
 
-	(insert (make-string (length path) ?\ ))
-
-	(if (null (plist-get f :value))
-	    (ensime-insert-action-link
-	     name
-	     `(lambda (x)
-		(let* ((new-expansion (ensime-db-grow-expansion
-				       ensime-db-buffer-value-expansion
-				       ',(append path (list name))))
-		       (new-val (plist-put (copy-list ensime-db-buffer-root-value)
-					   :expansion new-expansion)))
-		  (ensime-ui-show-nav-buffer
-		   ensime-db-value-buffer
-		   new-val t nil t)))
-	     font-lock-keyword-face)
-	  (insert name))
-	(insert " : ")
-
-	(ensime-insert-with-face
-	 (plist-get f :type-name)
-	 'font-lock-type-face)
-
-	(when-let (val (plist-get f :value))
-	  (insert (format
-		   " = %s"
-		   (ensime-db-value-short-name val))))
-	(insert "\n")))
-
-
-    :array
-    (lambda (val path)
-      (insert (make-string (* 2 (length path)) ?\ ))
-      (insert (format "Array[%s] of length %s\n"
-		      (plist-get val :element-type-name)
-		      (plist-get val :length))))
-
-
-    :array-el
-    (lambda (val i path)
-      (insert (make-string (length path) ?\ ))
-      (let* ((of-object-id (plist-get val :object-id)))
-
+	(ensime-db-ui-indent (length path))
 	(ensime-insert-action-link
-	 (format "[%s]" i)
+	 name
 	 `(lambda (x)
 	    (let* ((new-expansion (ensime-db-grow-expansion
 				   ensime-db-buffer-value-expansion
-				   ',(append path (list i))))
+				   ',(append path (list name))))
 		   (new-val (plist-put (copy-list ensime-db-buffer-root-value)
 				       :expansion new-expansion)))
 	      (ensime-ui-show-nav-buffer
@@ -400,13 +429,44 @@
 	       new-val t nil t)))
 	 font-lock-keyword-face)
 
+	(insert ": ")
+	(ensime-insert-with-face
+	 (ensime-last-name-component (plist-get f :type-name))
+	 'font-lock-type-face)
+	(insert (format " = %s" summary))
 	(insert "\n")))
+
+
+    :array
+    (lambda (val path)
+      (ensime-db-ui-indent (* 2 (length path)))
+      (insert (format "Array[%s] of length %s\n"
+		      (plist-get val :element-type-name)
+		      (plist-get val :length))))
+
+
+    :array-el
+    (lambda (val i path)
+      (ensime-db-ui-indent (length path))
+      (ensime-insert-action-link
+       (format "[%s]" i)
+       `(lambda (x)
+	  (let* ((new-expansion (ensime-db-grow-expansion
+				 ensime-db-buffer-value-expansion
+				 ',(append path (list i))))
+		 (new-val (plist-put (copy-list ensime-db-buffer-root-value)
+				     :expansion new-expansion)))
+	    (ensime-ui-show-nav-buffer
+	     ensime-db-value-buffer
+	     new-val t nil t)))
+       font-lock-keyword-face)
+
+      (insert "\n"))
 
     :null
     (lambda (val path)
-      (insert (make-string (length path) ?\ ))
-      (insert "null : Null\n"))
-
+      (ensime-db-ui-indent (length path))
+      (insert "null: Null\n"))
 
     )))
 
@@ -445,11 +505,13 @@
 	    info))
    :update (lambda (info))
    :help-text "Press q to quit, use n,s,o,c to control debugger."
+   :writable t
    :keymap `(
 	     (,(kbd "n") ,'ensime-db-next)
 	     (,(kbd "s") ,'ensime-db-step)
 	     (,(kbd "o") ,'ensime-db-step-out)
 	     (,(kbd "c") ,'ensime-db-continue)
+	     (,(kbd "C-c C-c") ,'ensime-db-commit-writable-values)
 	     )
    ))
 
@@ -497,9 +559,10 @@
     (funcall (plist-get visitor :object-field) val f path)
     (when-let (sub-expansion (ensime-db-sub-expansion
 			      expansion field-name))
-      (let ((sub-val (ensime-rpc-debug-value-for-field
-		      (plist-get val :object-id)
-		      field-name
+      (let ((sub-val (ensime-rpc-debug-value
+		      (ensime-db-make-obj-field-location
+		       (plist-get val :object-id)
+		       field-name)
 		      )))
 	(ensime-db-visit-value sub-val sub-expansion
 			       (append path (list field-name))
@@ -516,9 +579,10 @@
   (funcall (plist-get visitor :array-el) val i path)
   (when-let (sub-expansion (ensime-db-sub-expansion
 			    expansion i))
-    (let ((sub-val (ensime-rpc-debug-value-for-index
-		    (plist-get val :object-id)
-		    i)))
+    (let ((sub-val (ensime-rpc-debug-value
+		    (ensime-db-make-array-el-location
+		     (plist-get val :object-id)
+		     i))))
       (ensime-db-visit-value sub-val sub-expansion
 			     (append path (list i))
 			     visitor))))
@@ -532,9 +596,9 @@
 
   (case (plist-get val :val-type)
 
-    (ref (let ((looked-up (ensime-rpc-debug-value-for-id
-			   (plist-get val :object-id)
-			   )))
+    (ref (when-let (looked-up (ensime-rpc-debug-value
+			       (ensime-db-make-obj-ref-location
+				(plist-get val :object-id))))
 	   (ensime-db-visit-value looked-up
 				  expansion
 				  path
@@ -570,17 +634,24 @@
 (defun ensime-db-visit-backtrace (val
 				  visitor)
   (funcall (plist-get visitor :header)
-	   (plist-get val :thread-id))
+	   (plist-get val :thread-id)
+	   (plist-get val :thread-name))
   (dolist (frame (plist-get val :frames))
     (funcall (plist-get visitor :frame)
 	     (plist-get frame :class-name)
 	     (plist-get frame :method-name)
 	     (plist-get (plist-get frame :pc-location) :file)
-	     (plist-get (plist-get frame :pc-location) :line))
+	     (plist-get (plist-get frame :pc-location) :line)
+	     (plist-get frame :this-object-id))
     (dolist (var (plist-get frame :locals))
       (funcall (plist-get visitor :local-var)
+	       (plist-get val :thread-id)
+	       (plist-get frame :index)
+	       (plist-get var :index)
 	       (plist-get var :name)
-	       (plist-get var :value))
+	       (plist-get var :summary)
+	       (plist-get var :type-name)
+	       )
       )
     )
   )
@@ -691,6 +762,21 @@ the current project's dependencies. Returns list of form (cmd [arg]*)"
     (setq ensime-db-default-main-args debug-args)
     (concat debug-class " " debug-args)))
 
+(defun ensime-db-get-hostname ()
+  "Get the target hostname"
+  (let* ((debug-hostname (read-string
+			  "Hostname: "
+			  ensime-db-default-hostname)))
+    (setq ensime-db-default-hostname debug-hostname)
+    debug-hostname))
+
+(defun ensime-db-get-port ()
+  "Get the target port"
+  (let* ((debug-port (read-string
+		      "Port: "
+		      ensime-db-default-port)))
+    (setq ensime-db-default-port debug-port)
+    debug-port))
 
 (defun ensime-db-connection-closed (conn)
   (ensime-db-clear-breakpoint-overlays)
@@ -698,26 +784,50 @@ the current project's dependencies. Returns list of form (cmd [arg]*)"
 
 
 (defun ensime-db-start ()
-  "Run a Scala interpreter in an Emacs buffer"
+  "Start a debug VM"
   (interactive)
 
   (ensime-with-conn-interactive
    conn
    (let ((root-path (or (ensime-configured-project-root) "."))
 	 (cmd-line (ensime-db-get-cmd-line)))
-     (ensime-rpc-debug-start cmd-line)
 
-     (add-hook 'ensime-db-thread-suspended-hook
-	       'ensime-db-update-backtraces)
+     (let ((ret (ensime-rpc-debug-start cmd-line)))
+       (if (string= (plist-get ret :status) "success")
+	   (progn
+	     (message "Starting debug VM...")
+	     (add-hook 'ensime-db-thread-suspended-hook
+		       'ensime-db-update-backtraces)
 
-     (add-hook 'ensime-net-process-close-hooks
-	       'ensime-db-connection-closed)
+	     (add-hook 'ensime-net-process-close-hooks
+		       'ensime-db-connection-closed))
 
-     (message "Starting debug VM...")
-     )))
+	 (message (format "An error occured during starting debug VM: %s"
+			  (plist-get ret :details))))
+       ))))
 
 
+(defun ensime-db-attach ()
+  "Attach to a debug VM"
+  (interactive)
 
+  (ensime-with-conn-interactive
+   conn
+   (let ((hostname (ensime-db-get-hostname))
+	 (port (ensime-db-get-port)))
 
+     (let ((ret (ensime-rpc-debug-attach hostname port)))
+       (if (string= (plist-get ret :status) "success")
+	   (progn
+	     (message "Attaching to target VM...")
+	     (add-hook 'ensime-db-thread-suspended-hook
+		       'ensime-db-update-backtraces)
+
+	     (add-hook 'ensime-net-process-close-hooks
+		       'ensime-db-connection-closed))
+
+	 (message "An error occured during attaching to target VM: %s"
+		  (plist-get ret :details)))))
+   ))
 
 (provide 'ensime-debug)

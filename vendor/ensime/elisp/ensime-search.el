@@ -1,4 +1,4 @@
-;;; ensime-refactor.el
+;;; ensime-search.el
 ;;
 ;;;; License
 ;;
@@ -244,7 +244,7 @@
   (interactive)
   (when (and ensime-search-current-selected-result
 	     ensime-search-originating-buffer)
-    (let* ((item (ensime-search-result-data 
+    (let* ((item (ensime-search-result-data
 		  ensime-search-current-selected-result))
 	   (qualified-name (ensime-search-sym-name item)))
       (with-current-buffer ensime-search-originating-buffer
@@ -285,10 +285,14 @@
 	(delete-overlay ensime-search-selection-overlay))
       (let ((target-point (ensime-search-result-summary-start
 			   ensime-search-current-selected-result)))
-	(save-excursion
-	  (goto-char target-point)
-	  (setq ensime-search-selection-overlay 
-		(ensime-make-overlay target-point (point-at-eol) nil 'ensime-warnline))))
+	(goto-char target-point)
+	(setq ensime-search-selection-overlay
+	      (ensime-make-overlay target-point (point-at-eol)
+				   nil 'ensime-warnline))
+	(set-window-point (ensime-window-showing-buffer
+			   ensime-search-target-buffer)
+			  target-point)
+	)
       )))
 
 

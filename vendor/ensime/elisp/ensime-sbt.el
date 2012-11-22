@@ -41,6 +41,7 @@
 (eval-when-compile (require 'cl))
 (require 'compile)
 (require 'comint)
+(require 'ensime-comint-utils)
 
 (defgroup ensime-sbt nil
   "Support for sbt build REPL."
@@ -98,10 +99,9 @@
 
      (setq ensime-buffer-connection conn)
 
-
      (set (make-local-variable 'compilation-error-regexp-alist)
-	  '(("^\\[error\\] \\([_.a-zA-Z0-9/-]+[.]scala\\):\\([0-9]+\\):"
-	     1 2 nil 2 nil)))
+	  '(("^\\[error\\] \\(.+\\):\\([0-9]+\\): "
+	     1 2 nil 2 1)))
      (set (make-local-variable 'compilation-mode-font-lock-keywords)
 	  '(("^\\[error\\] Error running compile:"
 	     (0 compilation-error-face))
@@ -115,6 +115,11 @@
      (set (make-local-variable 'comint-process-echoes) nil)
      (set (make-local-variable 'compilation-auto-jump-to-first-error) t)
      (set (make-local-variable 'comint-scroll-to-bottom-on-output) t)
+     ;; `scala>' is for the repl launched from stb
+     (set (make-local-variable 'comint-prompt-regexp)
+          (let ((project-name (plist-get (ensime-config) :project-name)))
+            (concat "^\\(>\\|scala>\\|\\[" project-name "\\] \\$\\) ")))
+     (set (make-local-variable 'comint-use-prompt-regexp) t)
      (set (make-local-variable 'comint-prompt-read-only) t)
      (set (make-local-variable 'comint-output-filter-functions)
 	  '(ansi-color-process-output comint-postoutput-scroll-to-bottom))
@@ -133,6 +138,8 @@
 
      (let ((proc (get-buffer-process (current-buffer))))
        (ensime-set-query-on-exit-flag proc))
+
+     (define-key (current-local-map) "\t" 'ensime-sbt-complete)
 
      (current-buffer)
      )))
@@ -179,6 +186,20 @@
 	 (ensime-connected-p)
 	 ensime-sbt-compile-on-save)
     (ensime-sbt-action "compile")))
+
+(defun ensime-sbt-complete ()
+  "Complete input at point"
+  (interactive)
+  (let* ((proc (get-buffer-process (ensime-sbt-build-buffer-name)))
+         (input (buffer-substring (comint-line-beginning-position) (point)))
+         (prompt (buffer-substring (line-beginning-position)
+                                   (comint-line-beginning-position)))
+         (cand-regexp (if (string-match "scala>" prompt)
+                          "[\f\t\n\r\v]+"
+                        "\s\s\\|[\f\t\n\r\v]+")))
+    (if (string-to-list input)
+        (ensime-comint-complete proc input cand-regexp "{invalid input}")
+      (message "At least one character is needed !"))))
 
 (defun ensime-sbt-action (action)
   "Run an sbt action. Where action is a string in the set of valid
