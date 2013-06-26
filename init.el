@@ -27,6 +27,7 @@
 (vendor 'textile-minor-mode)
 (vendor 'thrift-mode)
 (vendor 'fringe-helper)
+(vendor 'popwin)
 
 ; load third-party modes that the vendor function can't handle
 (add-to-list 'load-path "~/.emacs.d/vendor/scala-mode2")

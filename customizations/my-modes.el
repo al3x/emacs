@@ -107,3 +107,6 @@
 (add-hook 'find-file-hook 'enable-test-case-mode-if-test)
 (add-hook 'compilation-finish-functions
           'test-case-compilation-finish-run-all)
+
+; popwin
+(popwin-mode 1)
