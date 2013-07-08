@@ -4,3 +4,6 @@
 [submodule "vendor/popwin"]
 	path = vendor/popwin
 	url = https://github.com/m2ym/popwin-el.git
+[submodule "vendor/color-theme-solarized"]
+	path = vendor/color-theme-solarized
+	url = https://github.com/sellout/emacs-color-theme-solarized.git

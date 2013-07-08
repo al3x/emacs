@@ -1,0 +1,309 @@
+This is haskell-mode.info, produced by makeinfo version 4.13 from
+haskell-mode.texi.
+
+INFO-DIR-SECTION Emacs
+START-INFO-DIR-ENTRY
+* Haskell Mode: (haskell-mode).             Haskell Development Environment for Emacs(en)
+END-INFO-DIR-ENTRY
+
+   This manual is for haskell-mode, version 13.x.
+
+   Copyright (C) 2013 Haskell Mode contributors.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.
+
+
+File: haskell-mode.info,  Node: Top,  Next: Introduction,  Prev: (dir),  Up: (dir)
+
+Haskell Mode
+************
+
+Haskell Mode is an Haskell development Environment for GNU Emacs.  It
+provides syntax-based indentation, font locking, and supports running
+an inferior Haskell interpreter (e.g. GHCi).
+
+   This manual is for haskell-mode, version 13.x.
+
+   Copyright (C) 2013 Haskell Mode contributors.
+
+     Permission is granted to copy, distribute and/or modify this
+     document under the terms of the GNU Free Documentation License,
+     Version 1.2 or any later version published by the Free Software
+     Foundation; with no Invariant Sections, with no Front-Cover Texts,
+     and with no Back-Cover Texts.
+
+* Menu:
+
+* Introduction::
+* Getting Started::
+* Editing Code::
+* Unicode::
+* Indentation::
+* inferior-haskell-mode::
+* haskell-interactive-mode::
+* haskell-cabal-mode::
+* Concept index::
+* Function index::
+* Variable index::
+
+
+File: haskell-mode.info,  Node: Introduction,  Next: Getting Started,  Prev: Top,  Up: Top
+
+1 Introduction
+**************
+
+"Haskell Mode" is a major mode providing a convenient environment for
+editing Haskell (http://www.haskell.org) programs.
+
+   Some of its major features are:
+
+   * Syntax highlighting (font lock),
+
+   * automatic indentation,
+
+   * on-the-fly documentation,
+
+   * interaction with inferior GHCi/Hugs instance, and
+
+   * scanning declarations and placing them in a menu.
+
+   This Info manual is work in progress and incomplete. However, you
+can find more information at these locations:
+
+   * Haskell Mode's GitHub Home
+     (https://github.com/haskell/haskell-mode)
+
+   * Haskell Wiki Emacs Page
+     (http://www.haskell.org/haskellwiki/Haskell_mode_for_Emacs)
+
+
+File: haskell-mode.info,  Node: Getting Started,  Next: Editing Code,  Prev: Introduction,  Up: Top
+
+2 Getting Started
+*****************
+
+If you are reading this, you have most likely already managed to
+install Haskell mode in one way or another. However, just for the
+record, the officially recommended way to install Haskell Mode via the
+Marmalade package archive
+(http://marmalade-repo.org/packages/haskell-mode) which contains the
+latest stable release of Haskell Mode.
+
+   Most of Haskell Mode's settings are configurable via customizable
+variables (*Note Easy Customization: (emacs)Easy Customization, for
+details). You can use `M-x haskell-customize' to browse the `haskell'
+customization sub-tree.
+
+   One of the important setting you should customize is the
+`haskell-mode-hook' variable (*note Hooks: (emacs)Hooks.) which gets
+run right after the `haskell-mode' major mode is initialized for a
+buffer. You can customize `haskell-mode-hook' by `M-x
+customize-variable <RET> haskell-mode-hook'. It's highly recommended
+you set up indentation to match to match your preferences, *Note
+Indentation::.
+
+
+File: haskell-mode.info,  Node: Editing Code,  Next: Unicode,  Prev: Getting Started,  Up: Top
+
+3 Editing Code
+**************
+
+TODO/WRITEME
+
+
+File: haskell-mode.info,  Node: Unicode,  Next: Indentation,  Prev: Editing Code,  Up: Top
+
+4 Unicode support
+*****************
+
+See the Haskell Wiki's entry on Unicode Symbols
+(http://www.haskell.org/haskellwiki/Unicode-symbols) for general
+information about Unicode support in Haskell.
+
+   As Emacs supports editing files containing Unicode out of the box,
+so does Haskell Mode. As an add-on, Haskell Mode includes the
+`haskell-unicode' input method which allows you to easily type a number
+of Unicode symbols that are useful when writing Haskell code; for more
+details *Note Input Methods: (Emacs)Input Methods.
+
+   To automatically enable the `haskell-unicode' input method in
+haskell-mode buffers use `M-x customize-variable <RET>
+haskell-mode-hook' or put the following code in your `.emacs` file:
+
+     (add-hook 'haskell-mode-hook 'turn-on-haskell-unicode-input-method)
+
+To temporarily enable this input method for a single buffer you can use
+`M-x turn-on-haskell-unicode-input-method'.
+
+   When the `haskell-unicode' input method is active, you can simply
+type `->' and it is immediately replaced with `→'. Use `C-\' to toggle
+the input method. To see a table of all key sequences use `M-x
+describe-input-method <RET> haskell-unicode'. A sequence like `<=' is
+ambiguous and can mean either `⇐' or `≤'. Typing it presents you with a
+choice. Type `1' or `2' to select an option or keep typing to use the
+default option.
+
+   If you don't like the highlighting of partially matching tokens you
+can turn it off by setting `input-method-highlight-flag' to `nil' via
+`M-x customize-variable'.
+
+
+File: haskell-mode.info,  Node: Indentation,  Next: inferior-haskell-mode,  Prev: Unicode,  Up: Top
+
+5 Indentation
+*************
+
+Three Haskell indentation schemes are included in Haskell mode:
+
+`turn-on-haskell-simple-indent'
+     A very simple indentation scheme; In this scheme, <TAB> will now
+     move the cursor to the next indent point in the previous nonblank
+     line.  An indent point is a non-whitespace character following
+     whitespace.
+
+`turn-on-haskell-indent'
+     Intelligent semi-automatic indentation for Haskell's layout rule.
+     The basic idea is to have <TAB> cycle through possibilities
+     indentation points based on some clever heuristics.
+
+     The rationale and the implementation principles are described in
+     more detail the article `Dynamic tabbing for automatic indentation
+     with the layout rule' published in the Journal of Functional
+     Programming 8.5 (1998).
+
+`turn-on-haskell-indentation'
+     Improved variation of `turn-on-haskell-indent' indentation mode.
+     Rebinds <RET> and <DEL>, so that indentations can be set and
+     deleted as if they were real tabs.
+
+
+   To enable one of these three mutually exclusive indentation schemes,
+you just need call one (and only one!) of the `turn-on-*' commands
+while in the buffer you want the indentation scheme to be activated for.
+
+   The recommended way is to add one of `turn-on-*' commands to
+`haskell-mode-hook'. This can be done either by using `M-x
+customize-variable <RET> haskell-mode-hook' which provides a convenient
+user interface or by adding _one_ the following three lines to your
+`.emacs' file:
+
+     (add-hook 'haskell-mode-hook 'turn-on-haskell-simple-indent)
+     (add-hook 'haskell-mode-hook 'turn-on-haskell-indent)
+     (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+
+
+File: haskell-mode.info,  Node: inferior-haskell-mode,  Next: haskell-interactive-mode,  Prev: Indentation,  Up: Top
+
+6 `inferior-haskell-mode'
+*************************
+
+The major mode `inferior-haskell-mode' provides support for interacting
+with an inferior Haskell process.
+
+   The Haskell interpreter used by the inferior Haskell mode is
+autodetected by default, but is customizable via the
+`haskell-program-name' variable.
+
+   Currently, GHCi and Hugs are support as Haskell interpreter.
+
+   TODO/WRITEME
+
+
+File: haskell-mode.info,  Node: haskell-interactive-mode,  Next: haskell-cabal-mode,  Prev: inferior-haskell-mode,  Up: Top
+
+7 `haskell-interactive-mode'
+****************************
+
+A new mode for the REPL and GHCi sessions is called
+`haskell-interactive-mode', it intends to replace
+`inferior-haskell-mode', but comes with different features.
+
+   TODO/WRITEME
+
+
+File: haskell-mode.info,  Node: haskell-cabal-mode,  Next: Concept index,  Prev: haskell-interactive-mode,  Up: Top
+
+8 `haskell-cabal-mode'
+**********************
+
+TODO/WRITEME
+
+
+File: haskell-mode.info,  Node: Concept index,  Next: Function index,  Prev: haskell-cabal-mode,  Up: Top
+
+Concept index
+*************
+
+ [index ]
+* Menu:
+
+* indentation:                           Indentation.           (line 6)
+* Unicode:                               Unicode.               (line 6)
+
+
+File: haskell-mode.info,  Node: Function index,  Next: Variable index,  Prev: Concept index,  Up: Top
+
+Function index
+**************
+
+ [index ]
+* Menu:
+
+* haskell-customize:                     Getting Started.      (line 13)
+* inferior-cabal-mode:                   haskell-cabal-mode.   (line  6)
+* inferior-haskell-find-definition:      inferior-haskell-mode.
+                                                               (line  6)
+* inferior-haskell-find-haddock:         inferior-haskell-mode.
+                                                               (line  6)
+* inferior-haskell-info:                 inferior-haskell-mode.
+                                                               (line  6)
+* inferior-haskell-load-and-run:         inferior-haskell-mode.
+                                                               (line  6)
+* inferior-haskell-load-file:            inferior-haskell-mode.
+                                                               (line  6)
+* inferior-haskell-mode:                 inferior-haskell-mode.
+                                                               (line  6)
+* inferior-haskell-reload-file:          inferior-haskell-mode.
+                                                               (line  6)
+* inferior-haskell-start-process:        inferior-haskell-mode.
+                                                               (line  6)
+* inferior-haskell-type:                 inferior-haskell-mode.
+                                                               (line  6)
+* turn-on-haskell-indent:                Indentation.          (line 14)
+* turn-on-haskell-indentation:           Indentation.          (line 24)
+* turn-on-haskell-simple-indent:         Indentation.          (line  8)
+
+
+File: haskell-mode.info,  Node: Variable index,  Prev: Function index,  Up: Top
+
+Variable index
+**************
+
+ [index ]
+* Menu:
+
+* haskell-program-name:                  inferior-haskell-mode. (line 6)
+* inferior-cabal-mode-hook:              haskell-cabal-mode.    (line 6)
+* inferior-haskell-mode-hook:            inferior-haskell-mode. (line 6)
+
+
+
+Tag Table:
+Node: Top653
+Node: Introduction1591
+Node: Getting Started2377
+Node: Editing Code3486
+Node: Unicode3629
+Node: Indentation5233
+Node: inferior-haskell-mode7036
+Node: haskell-interactive-mode7549
+Node: haskell-cabal-mode7915
+Node: Concept index8095
+Node: Function index8401
+Node: Variable index10157
+
+End Tag Table

@@ -1,6 +1,4 @@
-(require 'color-theme)
-(require 'color-theme-solarized)
-
+(load-theme 'solarized-dark t)
 (setq my-color-themes (list 'color-theme-solarized-dark 'color-theme-solarized-light))
 
 (defun my-theme-set-default ()
