@@ -1,0 +1,106 @@
+#!/bin/sh
+
+OS_NAME=`uname -s`
+JDK=
+PORT_FILE=
+
+usage()
+{
+    echo "usage: $0 should be run by emacs plugin. M-x ensime should start \
+the server for you." | /usr/bin/fmt
+    exit 1
+}
+
+determine_jdk()
+{
+    if [ -n "$JDK_HOME" -a -x ${JDK_HOME}/bin/java ]; then
+        JDK="$JDK_HOME"
+    elif [ -n "$JAVA_HOME" -a -x ${JAVA_HOME}/bin/java ]; then
+        JDK="$JAVA_HOME"
+    else
+        # not specified. let's search for it.
+        J_BIN=`which java`
+        J_DIR=
+
+        if [ -n "$J_BIN" ]; then
+            if [ ${OS_NAME} = "OpenBSD" ]; then
+                J_DIR=`JAVAVM_DRYRUN=yes java | grep '^JAVA_HOME' | cut -c11-`
+            elif [ ${OS_NAME} = "FreeBSD" ]; then
+                J_DIR=`JAVAVM_DRYRUN=yes java | grep '^JAVA_HOME' | cut -c11-`
+            elif [ ${OS_NAME} = "SunOS" ]; then
+                J_DIR="/usr/jdk/latest"
+            elif [ ${OS_NAME} = "Darwin" ]; then
+                J_DIR=`/usr/libexec/java_home`
+            fi
+
+            if [ -x ${J_DIR}/bin/java ]; then
+                JDK="$J_DIR"
+                JAVA_HOME="$J_DIR"
+            fi
+
+            # still zero? welcome to linux zoo. now follow the link that
+            # points onto java binary and try to determine JDK's location.
+            if [ -z "$JDK" -a -x /bin/readlink ]; then
+                J_DIR=`readlink -f ${J_BIN}`
+
+                case $J_DIR in
+                    */jre/bin/java)
+                        # if ending on "*/jre/bin/java", then substitute this
+                        # tail with clear string -- aka cut-off this tail or
+                        # equivalent to '../../..'. that will point on JDK dir.
+                        J_DIR=`echo "${J_DIR}" | \
+                          awk '{ sub("/jre/bin/java", "", $1); print $1 }'` ;;
+                    *)
+                        # otherwise, it shall point on "*/bin/java".
+                        # if it's not, then it doesn't make any sense at all.
+                        J_DIR=`echo "${J_DIR}" | \
+                          awk '{ sub("/bin/java", "", $1); print $1 }'` ;;
+                esac
+
+                if [ -x ${J_DIR}/bin/java ]; then
+                    JDK="$J_DIR"
+                    JAVA_HOME="$J_DIR"
+                fi
+            fi
+        fi
+    fi
+
+    # if it is still zero, then we're so sorry - you're doing something wrong.
+    if [ -z "$JDK" ]; then
+        echo "ERROR: no valid JDK were found."
+        echo ""
+        echo "       Before starting Ensime, please validate that you"
+        echo "       at least set environment variable JDK_HOME or JAVA_HOME,"
+        echo "       which points to valid JDK installation."
+        echo ""
+        echo "Good luck."
+
+        exit 1
+    fi
+}
+
+case $1 in
+    -h|--help|"")
+        usage ;;
+    *)
+        PORT_FILE=$1 ;;
+esac
+
+determine_jdk
+
+if [ -z "$ENSIME_JVM_ARGS" ]; then
+    ENSIME_JVM_ARGS="-Xms128m -Xmx1512M -Xss1M -XX:MaxPermSize=250m \
+    -XX:ReservedCodeCacheSize=64m -Dfile.encoding=UTF-8"
+fi
+
+BOOTCLASSPATH="scala-library.jar:scala-reflect.jar:scala-compiler.jar:scala-actors.jar"
+CLASSPATH="lib/asm-3.3.jar:lib/critbit-0.0.4.jar:lib/org.eclipse.jdt.core-3.6.0.v_A58.jar:lib/scala-compiler.jar:lib/asm-tree-3.3.jar:lib/org.scala-refactoring_2.10.0-SNAPSHOT-0.6.1-20130201.063851-55.jar:lib/lucene-core-3.5.0.jar:lib/scala-reflect-2.10.2.jar:lib/scala-actors-2.10.2.jar:lib/ensime_2.10-0.9.9.jar:lib/asm-commons-3.3.jar:lib/scala-library.jar:lib/scalariform_2.10-0.1.4.jar:lib/asm-util-3.3.jar:lib/json-simple-1.1.jar:${JAVA_HOME}/lib/tools.jar"
+
+CMD="${JDK}/bin/java -Xbootclasspath/a:${BOOTCLASSPATH} -classpath ${CLASSPATH} \
+    ${ENSIME_JVM_ARGS} org.ensime.server.Server ${PORT_FILE}"
+
+echo ""
+echo "${CMD}" | /usr/bin/fmt
+exec $CMD
+
+exit 0
