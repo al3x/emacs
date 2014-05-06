@@ -1,11 +1,17 @@
 ; enable Common Lisp support
 (require 'cl)
 
-; Marmalade package manager
+; use packages
 (require 'package)
+(package-initialize)
+
+; Marmalade package repo
 (add-to-list 'package-archives
   '("marmalade" . "http://marmalade-repo.org/packages/") t)
-(package-initialize)
+
+; MELPA package repo
+(add-to-list 'package-archives
+  '("melpa" . "http://melpa.milkbox.net/packages/") t)
 
 ; some modes need to call stuff on the exec-path
 (push "/usr/local/bin" exec-path)
@@ -27,7 +33,7 @@
 (vendor 'textile-minor-mode)
 (vendor 'thrift-mode)
 (vendor 'fringe-helper)
-(vendor 'popwin)
+;(vendor 'popwin)
 (vendor 'color-theme-solarized)
 
 ; load third-party modes that the vendor function can't handle
@@ -51,6 +57,7 @@
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes (quote (solarized-dark)))
  '(custom-safe-themes (quote ("fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "4aee8551b53a43a883cb0b7f3255d6859d766b6c5e14bcb01bed572fcbef4328" default)))
+ '(org-agenda-files (quote ("~/ownCloud/notes/main.org")))
  '(safe-local-variable-values (quote ((buffer-file-coding-system . utf-8-unix) (org-export-html-style-include-scripts)))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

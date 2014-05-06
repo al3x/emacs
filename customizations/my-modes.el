@@ -18,6 +18,12 @@
 (autoload 'ack-find-same-file "full-ack" nil t)
 (autoload 'ack-find-file "full-ack" nil t)
 
+; Dash
+(add-to-list 'load-path "/path/to/dash-at-point")
+  (autoload 'dash-at-point "dash-at-point"
+            "Search the word at point with Dash." t nil)
+  (global-set-key "\C-cd" 'dash-at-point)
+
 ; Scala
 (require 'scala-mode)
 (add-to-list 'auto-mode-alist '("\\.scala$" . scala-mode))
@@ -108,4 +114,41 @@
           'test-case-compilation-finish-run-all)
 
 ; popwin
-(popwin-mode 1)
+;(popwin-mode 1)
+
+; nrepl
+(require 'nrepl)
+; Enable eldoc in clojure buffers
+(add-hook 'nrepl-interaction-mode-hook
+  'nrepl-turn-on-eldoc-mode)
+
+(setq nrepl-hide-special-buffers t)
+
+(add-hook 'nrepl-mode-hook 'paredit-mode)
+
+(setq nrepl-popup-stacktraces nil)
+(setq nrepl-popup-stacktraces-in-repl t)
+
+; Make C-c C-z switch to the *nrepl* buffer in the current window
+(add-to-list 'same-window-buffer-names "*nrepl*")
+
+; CamelCase support for editing commands
+(add-hook 'nrepl-mode-hook 'subword-mode)
+
+; ac-nrepl
+(require 'ac-nrepl)
+(add-hook 'nrepl-mode-hook 'ac-nrepl-setup)
+(add-hook 'nrepl-interaction-mode-hook 'ac-nrepl-setup)
+(eval-after-load "auto-complete"
+ '(add-to-list 'ac-modes 'nrepl-mode))
+
+; trigger auto-complete using TAB in nrepl buffers
+(defun set-auto-complete-as-completion-at-point-function ()
+  (setq completion-at-point-functions '(auto-complete)))
+(add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
+
+(add-hook 'nrepl-mode-hook 'set-auto-complete-as-completion-at-point-function)
+(add-hook 'nrepl-interaction-mode-hook 'set-auto-complete-as-completion-at-point-function)
+
+; use ac-nrepl's popup documentation in place of nrepl-doc
+(define-key nrepl-interaction-mode-map (kbd "C-c C-d") 'ac-nrepl-popup-doc)
