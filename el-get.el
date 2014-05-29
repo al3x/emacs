@@ -42,6 +42,7 @@
                        rubocop-mode
                        ruby-mode
                        scala-mode2
+                       smart-tab
                        smartparens
                        smex
                        solarized-emacs
