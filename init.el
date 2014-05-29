@@ -1,7 +1,32 @@
+; env
+(setq explicit-shell-file-name "/bin/bash")
+(setq exec-path (append '(
+                          "~/bin"
+                          "/usr/local/sbin"
+                          "/usr/local/bin"
+                          "~/.rbenv/shims/"
+                          "/sbin"
+                          "/opt/local/bin"
+                          "/usr/local/share/npm/bin"
+                          "~/.cabal/bin"
+                          "/usr/local/MacGPG2/bin"
+                          )
+                        exec-path))
+(setenv "PATH"
+        (mapconcat 'identity exec-path path-separator))
+(setenv "PAGER" "cat")
+(setenv "EDITOR" "emacsclient")
+(setenv "ALTERNATE_EDITOR" "emacs")
+(setenv "PROMPT_COMMAND" "")
+(setenv "GPG_AGENT_INFO" nil)
+(setenv "SSH_AUTH_SOCK" (expand-file-name "~/.ssh/agent.sock"))
+(setenv "PS1" "${debian_chroot:+($debian_chroot)}\\u@\\h:\\w \\$ ")
 
-
-; some modes need to call stuff on the exec-path
-(push "/usr/local/bin" exec-path)
+(setenv "GIT_EDITOR" "emacsclient")
+(setenv "GIT_COMMITTER_NAME" "Alex Payne")
+(setenv "GIT_COMMITTER_EMAIL" "al3x@al3x.net")
+(setenv "GIT_AUTHOR_NAME" "Alex Payne")
+(setenv "GIT_AUTHOR_EMAIL" "al3x@al3x.net")
 
 ; add directories to the load path
 (add-to-list 'load-path "~/.emacs.d")
@@ -22,3 +47,6 @@
 (if (string-equal system-type "gnu/linux")
     (mapcar 'load-directory '("~/.emacs.d/linux-customizations"))
     (mapcar 'load-directory '("~/.emacs.d/mac-customizations")))
+
+; load and run El-Get
+(load-file "~/.emacs.d/el-get.el")

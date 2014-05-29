@@ -1,0 +1,5 @@
+(:name "shell-here"
+       :type github
+       :pkgname "ieure/shell-here"
+       :features "shell-here"
+       :description "Open an Emacs shell in the current directory.")

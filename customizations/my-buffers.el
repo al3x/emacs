@@ -1,8 +1,3 @@
-; dired
-(require 'dired+)
-(setq dired-recursive-deletes 'top)
-(put 'dired-find-alternate-file 'disabled nil)
-
 ; use ibuffer instead of the built in buffer list
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
@@ -36,14 +31,13 @@
 ; Interactively Do Things
 (require 'ido)
 (ido-mode t)
+(icomplete-mode t)
+(ido-init-completion-maps)
 (setq ido-enable-flex-matching t) ; case insensitive matching
 (add-to-list 'ido-ignore-files "\\.DS_Store")
 (setq ido-create-new-buffer 'always) ; always create a new buffer with Ido
 (setq ido-use-virtual-buffers t)
-
-; kill ring browsing
-(require 'browse-kill-ring)
-(browse-kill-ring-default-keybindings)
+(setq confirm-nonexistent-file-or-buffer nil)
 
 ; automatically clean up old buffers
 (require 'midnight)

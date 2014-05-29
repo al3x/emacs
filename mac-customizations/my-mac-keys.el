@@ -21,10 +21,6 @@
 
 ; frame switching
 (global-set-key (kbd "s-`") 'other-window)
-;(global-set-key (kbd "s-`") 'next-multiframe-window)
-
-; window switching
-;(global-set-key (kbd "M-s-`") 'other-window)
 
 ; close window
 (global-set-key [(super w)] (lambda ()
@@ -43,4 +39,3 @@
 
 ; fullscreen!
 (global-set-key [(super return)] 'ns-toggle-fullscreen)
-

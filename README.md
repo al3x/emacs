@@ -1,0 +1,34 @@
+## Introduction
+
+This is the Emacs configuration that [Alex Payne](http://al3x.net/) ([@al3x](https://github.com/al3x)) uses. It's not a "starter kit" or "configuration framework" for Emacs, though it does demonstrate the use of [El-Get](https://github.com/dimitri/el-get) and keeps customizations and tweaks tidy and modular.
+
+## Overview
+
+* Works on Mac OS X. I install Emacs on OS X via [Homebrew](http://brew.sh/).
+* Previously worked on Linux (Emacs 23 GTK on Ubuntu), but _not actively maintained for Linux_.
+* Has some useful accommodations for Dvorak typists, such as `C-t` being mapped to `C-x`, and being able to `C-x c` (actually `C-t c`) to do a `M-x`.
+  * Note that all of the above are way more comfortable if you set caps lock to act as ctrl.
+* Assumes that you want to use Emacs for editing and maybe very occasionally as your shell, but probably not for email, news, or web browsing.
+
+## Supported Syntaxes
+
+Beyond what Emacs supports out of the box:
+
+* Clojure
+* Go
+* Scala
+* Haskell
+* CoffeeScript
+* Markdown
+* YAML
+
+## Additional Modes and Tweaks
+
+* Magit – integration with the Git VCS
+* ag – a nice interface to The Silver Searcher, which supercedes grep and ack
+* defaults to the [Solarized](http://ethanschoonover.com/solarized) dark theme
+
+## Inspiration
+
+* [technomancy](http://github.com/technomancy/emacs-starter-kit)
+* [whilp](https://github.com/whilp/dotfiles/tree/master/.emacs.d)
