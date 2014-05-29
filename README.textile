@@ -1,8 +1,6 @@
-*WARNING: this is pretty out of date. Think twice before using it.*
-
 h1. Introduction
 
-This is the Emacs configuration that "Alex Payne":http://al3x.net/ uses. It's not designed to be a "starter kit":http://github.com/technomancy/emacs-starter-kit. It's just some dude's preferred way to edit stuff, when using Emacs.
+This is the Emacs configuration that "Alex Payne":http://al3x.net/ uses. It's not designed to be a "starter kit":http://github.com/technomancy/emacs-starter-kit or a "configuration framework":https://github.com/demyanrogozhin/elhome. It's just some dude's preferred pile of modes and tweaks to Emacs.
 
 h2. Overview
 
