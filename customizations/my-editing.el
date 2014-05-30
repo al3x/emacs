@@ -3,10 +3,13 @@
 (setq-default tab-width 2)
 (setq-default indent-tabs-mode nil)
 
+; always a newline at the end
+(setq require-final-newline t)
+
 ; mousing
 (setq mac-emulate-three-button-mouse nil)
 
-; encoding
+; UTF-8 everywhere
 (prefer-coding-system 'utf-8)
 (set-language-environment 'utf-8)
 (set-default-coding-systems 'utf-8)
@@ -14,8 +17,6 @@
 (set-selection-coding-system 'utf-8)
 
 ; whitespace
-;(global-whitespace-mode t)
-;(setq show-trailing-whitespace t)
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 ; show column number in bar
