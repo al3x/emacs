@@ -28,6 +28,8 @@
 (setenv "GIT_AUTHOR_NAME" "Alex Payne")
 (setenv "GIT_AUTHOR_EMAIL" "al3x@al3x.net")
 
+(setq default-directory "~/src")
+
 ; add directories to the load path
 (add-to-list 'load-path "~/.emacs.d")
 (add-to-list 'load-path "~/.emacs.d/customizations")
