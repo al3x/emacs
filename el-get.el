@@ -22,6 +22,7 @@
                        cider
                        csv-mode
                        coffee-mode
+                       company-mode
                        dash-at-point
                        find-file-in-project
                        flx
@@ -42,7 +43,6 @@
                        rubocop-mode
                        ruby-mode
                        scala-mode2
-                       smart-tab
                        smartparens
                        smex
                        solarized-emacs

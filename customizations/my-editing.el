@@ -18,11 +18,6 @@
 ;(setq show-trailing-whitespace t)
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
-; line numbering
-;(require 'linum)
-;(global-linum-mode 0)
-;(setq linum-format "%d ") ; space after line number
-
 ; show column number in bar
 (column-number-mode t)
 
@@ -47,13 +42,5 @@
 ; apply syntax highlighting to all buffers
 (global-font-lock-mode t)
 
-; smooth scrolling
-;(require 'centered-cursor-mode)
-;(global-centered-cursor-mode t)
-
 ; wrap lines in a tasteful way
 (global-visual-line-mode 1)
-
-; column width
-;(set-fill-column 100)
-;(setq default-fill-column 100)
