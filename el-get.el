@@ -43,6 +43,7 @@
                        rubocop-mode
                        ruby-mode
                        scala-mode2
+                       smart-mode-line
                        smartparens
                        smex
                        solarized-emacs
