@@ -1,7 +1,5 @@
 (setq sml/theme 'respectful)
-
-(if after-init-time (sml/setup)
-  (add-hook 'after-init-hook 'sml/setup))
+(sml/setup)
 
 (setq sml/shorten-directory t)
 (setq sml/shorten-modes t)
@@ -14,3 +12,9 @@
 (add-to-list 'sml/hidden-modes " Wrap")
 
 (add-to-list 'sml/replacer-regexp-list '("^~/src/dobt/" ":DOBT:"))
+
+(defadvice sml/setup (after load-theme-again activate)
+  "Load the damn theme again."
+  (load-theme my-cur-theme))
+
+(ad-activate 'sml/setup)
