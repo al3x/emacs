@@ -1,0 +1,5 @@
+(:name json-reformat
+       :type github
+       :pkgname "gongo/json-reformat"
+       :description "Reformat tool for JSON"
+       :website "https://github.com/gongo/json-reformat")

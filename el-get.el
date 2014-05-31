@@ -32,6 +32,8 @@
                        haskell-mode
                        inf-ruby
                        json-mode
+                       json-reformat
+                       json-snatcher
                        magit
                        mo-git-blame
                        markdown-mode
