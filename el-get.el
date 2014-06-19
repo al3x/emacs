@@ -40,7 +40,6 @@
                        nginx-mode
                        org-mode
                        projectile
-                       rainbow-delimiters
                        request
                        rubocop-mode
                        ruby-mode
