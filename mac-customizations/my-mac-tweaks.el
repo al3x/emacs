@@ -3,3 +3,5 @@
 
 ; delete files by moving them to the OS X trash
 (setq delete-by-moving-to-trash t)
+
+(setenv "GOPATH" "/Users/al3x/src/mygo")
