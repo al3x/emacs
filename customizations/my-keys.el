@@ -7,3 +7,6 @@
 
 ; Always indent
 (electric-indent-mode 1)
+
+; TextMate-style commenting
+(global-set-key (kbd "s-/") 'comment-or-uncomment-region-or-line)
