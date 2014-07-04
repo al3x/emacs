@@ -10,6 +10,7 @@
                           "/usr/local/share/npm/bin"
                           "~/.cabal/bin"
                           "/usr/local/MacGPG2/bin"
+                          "~/src/mygo/bin"
                           )
                         exec-path))
 (setenv "PATH"
