@@ -31,8 +31,12 @@
                        flycheck
                        gist
                        go-company
+                       go-eldoc
+                       go-imports
                        go-mode
+                       go-oracle
                        go-projectile
+                       go-test
                        haskell-mode
                        inf-ruby
                        json-mode
