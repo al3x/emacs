@@ -14,43 +14,45 @@
  el-get-byte-compile t
  el-get-git-shallow-clone t
  el-get-user-package-directory "~/.emacs.d/el-get-init"
- el-get-sources '()
- my-el-get-packages (append
-                     '(
-                       ag
-                       apache-mode
-                       cider
-                       csv-mode
-                       coffee-mode
-                       company-mode
-                       dash-at-point
-                       find-file-in-project
-                       flx
-                       flycheck
-                       gist
-                       go-mode
-                       haskell-mode
-                       inf-ruby
-                       json-mode
-                       json-reformat
-                       json-snatcher
-                       magit
-                       mo-git-blame
-                       markdown-mode
-                       nginx-mode
-                       org-mode
-                       projectile
-                       request
-                       rubocop-mode
-                       ruby-mode
-                       scala-mode2
-                       smart-mode-line
-                       smartparens
-                       smex
-                       solarized-emacs
-                       textile-mode
-                       yaml-mode
-                       )
-                     (mapcar 'el-get-source-name el-get-sources)))
+ my-packages (append
+               '(
+                 ag
+                 apache-mode
+                 cider
+                 csv-mode
+                 coffee-mode
+                 company-mode
+                 dash-at-point
+                 find-file-in-project
+                 flx
+                 flycheck
+                 gist
+                 go-company
+                 go-mode
+                 go-projectile
+                 haskell-mode
+                 inf-ruby
+                 json-mode
+                 json-reformat
+                 json-snatcher
+                 magit
+                 mo-git-blame
+                 markdown-mode
+                 nginx-mode
+                 org-mode
+                 projectile
+                 request
+                 robe-mode
+                 rubocop-mode
+                 ruby-mode
+                 scala-mode2
+                 smart-mode-line
+                 smartparens
+                 smex
+                 solarized-emacs
+                 textile-mode
+                 yaml-mode
+                 )
+               (mapcar 'el-get-source-name el-get-sources)))
 
-(el-get 'sync my-el-get-packages)
+(el-get 'sync)
