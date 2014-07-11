@@ -47,6 +47,7 @@
                        markdown-mode
                        nginx-mode
                        org-mode
+                       pbcopy
                        projectile
                        request
                        robe-mode
