@@ -19,6 +19,14 @@
 ; no bell
 (setq ring-bell-function 'ignore)
 
-; smooth scrolling
-(setq scroll-conservatively 10000
-  scroll-step 1)
+;; scroll one line at a time (less "jumpy" than defaults)
+(setq mouse-wheel-scroll-amount '(1 ((shift) . 1)))
+
+;; don't accelerate scrolling
+(setq mouse-wheel-progressive-speed nil)
+
+;; scroll window under mouse
+(setq mouse-wheel-follow-mouse 't)
+
+;; scroll window under mous
+(setq scroll-step 1)
