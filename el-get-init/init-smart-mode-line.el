@@ -10,6 +10,9 @@
 (add-to-list 'sml/hidden-modes " company")
 (add-to-list 'sml/hidden-modes " vl")
 (add-to-list 'sml/hidden-modes " Wrap")
+(add-to-list 'sml/hidden-modes " AC")
+(add-to-list 'sml/hidden-modes " FlyC")
+(add-to-list 'sml/hidden-modes " ElDoc")
 
 (add-to-list 'sml/replacer-regexp-list '("^~/src/dobt/" ":DOBT:"))
 
