@@ -1,3 +1,5 @@
+(require 'cider)
+
 ; settings
 (setq nrepl-hide-special-buffers t)
 (setq cider-repl-popup-stacktraces t)

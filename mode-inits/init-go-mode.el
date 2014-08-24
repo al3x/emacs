@@ -1,3 +1,5 @@
+(autoload 'go-mode "go-mode" nil t)
+
 (add-hook 'go-mode-hook
           #'(lambda () (setq indent-tabs-mode nil)))
 

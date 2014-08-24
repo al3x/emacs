@@ -16,8 +16,12 @@
 
 (add-to-list 'sml/replacer-regexp-list '("^~/src/dobt/" ":DOBT:"))
 
+(custom-set-variables
+ '(custom-safe-themes (quote ("9527feeeec43970b1d725bdc04e97eb2b03b15be982ac50089ad223d3c6f2920" default))))
+(custom-set-faces)
+
 (defadvice sml/setup (after load-theme-again activate)
   "Load the damn theme again."
-  (load-theme my-cur-theme))
+  (load-theme my-cur-theme t))
 
 (ad-activate 'sml/setup)

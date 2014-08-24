@@ -1,14 +1,15 @@
 ## Introduction
 
-This is the Emacs configuration that [Alex Payne](http://al3x.net/) ([@al3x](https://github.com/al3x)) uses. It's not a "starter kit" or "configuration framework" for Emacs, though it does demonstrate the use of [El-Get](https://github.com/dimitri/el-get) and keeps customizations and tweaks tidy and modular.
+This is the Emacs configuration that [Alex Payne](http://al3x.net/) ([@al3x](https://github.com/al3x)) uses. It's not a "starter kit" or "configuration framework" or anything like that.
 
 ## Overview
 
+* Packages are managed with [Cask](https://github.com/cask/cask) and [Pallet](https://github.com/rdallasgray/pallet).
 * Works on Mac OS X. I install Emacs on OS X via [Homebrew](http://brew.sh/).
 * Previously worked on Linux (Emacs 23 GTK on Ubuntu), but _not actively maintained for Linux_.
 * Has some useful accommodations for Dvorak typists, such as `C-t` being mapped to `C-x`, and being able to `C-x c` (actually `C-t c`) to do a `M-x`.
   * Note that all of the above are way more comfortable if you set caps lock to act as ctrl.
-* Assumes that you want to use Emacs for editing and maybe very occasionally as your shell, but probably not for email, news, or web browsing.
+* Assumes that you want to use Emacs for editing text and code and not much more. No email, IRC, web browsing, Org mode craziness, etc.
 
 ## Supported Syntaxes
 
@@ -21,6 +22,8 @@ Beyond what Emacs supports out of the box:
 * CoffeeScript
 * Markdown
 * YAML
+
+...and some others. See the `Caskfile` for the whole gamut.
 
 ## Additional Modes and Tweaks
 
