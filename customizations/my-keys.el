@@ -14,3 +14,6 @@
 ; Easily move lines up and down using utility functions
 (global-set-key [(meta up)]  'move-line-up)
 (global-set-key [(meta down)]  'move-line-down)
+
+; Compile
+(global-set-key (kbd "C-c c") 'compile)
