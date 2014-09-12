@@ -11,6 +11,7 @@
   (local-set-key (kbd "M-.") 'godef-jump))
 (add-hook 'go-mode-hook 'my-go-mode-hook)
 
+; Ergh should really package this up to put in Cask
 (load "$GOPATH/src/code.google.com/p/go.tools/cmd/oracle/oracle.el")
 (add-hook 'go-mode-hook 'go-oracle-mode)
 
@@ -22,3 +23,4 @@
 (add-hook 'go-mode-hook 'go-eldoc-setup)
 
 (autoload 'go-mode "go-mode" nil t)
+(require 'go-projectile)
