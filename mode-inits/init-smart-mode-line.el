@@ -13,6 +13,7 @@
 (add-to-list 'sml/hidden-modes " AC")
 (add-to-list 'sml/hidden-modes " FlyC")
 (add-to-list 'sml/hidden-modes " ElDoc")
+(add-to-list 'sml/hidden-modes " oracle")
 
 (add-to-list 'sml/replacer-regexp-list '("^~/src/dobt/" ":DOBT:"))
 
