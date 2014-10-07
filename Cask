@@ -55,6 +55,8 @@
 (depends-on "smex")
 (depends-on "solarized-theme")
 (depends-on "sourcemap")
+(depends-on "tern")
 (depends-on "textile-mode")
 (depends-on "toml-mode")
+(depends-on "web-mode")
 (depends-on "yaml-mode")
